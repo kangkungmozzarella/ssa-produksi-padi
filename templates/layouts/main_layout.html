@@ -3,471 +3,107 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Title -->
-    <title>{% block title %}Prediksi Harga Bahan Pangan - Kabupaten Langkat{% endblock %}</title>
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="{{ url_for('static', filename='images/logo/favicon.png') }}">
-    <!-- Bootstrap -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-    <!-- file upload -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/file-upload.css') }}">
-    <!-- DataTables -->
+    <title>{% block title %}Dashboard{% endblock %} · Peramalan Produksi Padi SSA</title>
+    {% include 'partials/head_assets.html' %}
     <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.min.css">
-    <!-- Main css -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
     {% block extra_css %}{% endblock %}
-
-    <!-- Custom CSS untuk Rice Price Prediction Theme -->
-    <style>
-        :root {
-            --primary-color: #E74C3C;
-            --secondary-color: #C0392B;
-            --accent-color: #F39C12;
-            --rice-light: #FCF3CF;
-            --rice-medium: #F39C12;
-            --rice-dark: #C0392B;
-            --dark-color: #2c3e50;
-            --light-bg: #FEF5E7;
-        }
-
-        .sidebar {
-            background: linear-gradient(180deg, #ffffff 0%, #FEF5E7 100%);
-            border-right: 1px solid #F8C471;
-            box-shadow: 2px 0 10px rgba(231, 76, 60, 0.1);
-        }
-
-        .sidebar__logo h1 {
-            color: var(--primary-color);
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 700;
-        }
-
-        .sidebar-menu__link {
-            color: #6c757d;
-            border-radius: 12px;
-            margin: 4px 0;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .sidebar-menu__link:hover {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: #fff;
-            transform: translateX(5px);
-            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
-        }
-
-        .sidebar-menu__link.active {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
-        }
-
-        .top-navbar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid #F8C471;
-            box-shadow: 0 2px 10px rgba(231, 76, 60, 0.1);
-        }
-
-        .card {
-            border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.1);
-            border: none;
-            transition: transform 0.3s ease;
-        }
-
-        .dashboard-body {
-            background: linear-gradient(135deg, #FEF5E7 0%, #FCF3CF 100%);
-            min-height: calc(100vh - 140px);
-        }
-
-        .widget-card {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border-radius: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .model-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin: 2px 4px;
-            display: inline-block;
-        }
-
-        .badge-svr {
-            background: rgba(231, 76, 60, 0.2);
-            color: var(--primary-color);
-            border: 1px solid rgba(231, 76, 60, 0.3);
-        }
-
-        .badge-rbf {
-            background: rgba(243, 156, 18, 0.2);
-            color: var(--accent-color);
-            border: 1px solid rgba(243, 156, 18, 0.3);
-        }
-
-        .badge-ml {
-            background: rgba(52, 152, 219, 0.2);
-            color: #3498DB;
-            border: 1px solid rgba(52, 152, 219, 0.3);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
-            border-radius: 12px;
-            padding: 10px 25px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
-        }
-
-        .alert {
-            border-radius: 12px;
-            border: none;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Stats badges */
-        .stats-badge {
-            background: rgba(231, 76, 60, 0.1);
-            color: var(--primary-color);
-            padding: 4px 10px;
-            border-radius: 15px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: inline-block;
-            margin: 0 3px;
-        }
-    </style>
 </head>
 
 <body>
-    <!-- Preloader -->
-    <div class="preloader">
-        <div class="loader"></div>
-    </div>
+    <a class="skip-link" href="#konten">Lompat ke konten</a>
+    {% set ep = request.endpoint or '' %}
+    <div class="app" id="app">
+        <aside class="sidebar" id="sidebar" aria-label="Navigasi utama">
+            <a href="{{ url_for('dashboard') }}" class="brand">
+                <div class="brand-name">Peramalan Produksi Padi</div>
+                <div class="brand-place">KP. Putra Yusima, Aceh Utara</div>
+            </a>
 
-    <!-- Sidebar Overlay -->
-    <div class="side-overlay"></div>
+            <nav>
+                <ul class="side-nav">
+                    <li><a href="{{ url_for('dashboard') }}" class="side-link {% if ep == 'dashboard' %}active{% endif %}"
+                            {% if ep == 'dashboard' %}aria-current="page"{% endif %}>
+                            <i class="ph ph-gauge" aria-hidden="true"></i>Dashboard</a></li>
+                    <li><a href="{{ url_for('data_produksi') }}"
+                            class="side-link {% if ep.startswith('data_') %}active{% endif %}"
+                            {% if ep.startswith('data_') %}aria-current="page"{% endif %}>
+                            <i class="ph ph-table" aria-hidden="true"></i>Data Produksi</a></li>
+                    <li><a href="{{ url_for('peramalan') }}" class="side-link {% if ep == 'peramalan' %}active{% endif %}"
+                            {% if ep == 'peramalan' %}aria-current="page"{% endif %}>
+                            <i class="ph ph-chart-line-up" aria-hidden="true"></i>Proses Peramalan</a></li>
+                    <li><a href="{{ url_for('peramalan_riwayat') }}"
+                            class="side-link {% if ep in ('peramalan_riwayat', 'peramalan_detail') %}active{% endif %}"
+                            {% if ep in ('peramalan_riwayat', 'peramalan_detail') %}aria-current="page"{% endif %}>
+                            <i class="ph ph-clock-counter-clockwise" aria-hidden="true"></i>Hasil Peramalan</a></li>
+                    <li><a href="{{ url_for('tentang') }}" class="side-link {% if ep == 'tentang' %}active{% endif %}"
+                            {% if ep == 'tentang' %}aria-current="page"{% endif %}>
+                            <i class="ph ph-book-open-text" aria-hidden="true"></i>Tentang Penelitian</a></li>
+                    {% if is_admin %}
+                    <li><a href="{{ url_for('pengguna') }}" class="side-link {% if ep.startswith('pengguna') %}active{% endif %}"
+                            {% if ep.startswith('pengguna') %}aria-current="page"{% endif %}>
+                            <i class="ph ph-users" aria-hidden="true"></i>Kelola Pengguna</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <button type="button"
-            class="sidebar-close-btn text-gray-500 hover-text-white hover-bg-main-600 text-md w-24 h-24 border border-gray-100 hover-border-main-600 d-xl-none d-flex flex-center rounded-circle position-absolute">
-            <i class="ph ph-x"></i>
-        </button>
-
-        <a href="{{ url_for('homepage') }}"
-            class="sidebar__logo text-center p-20 position-sticky inset-block-start-0 bg-white w-100 z-1 pb-10">
-            <h1 class="text-2xl fw-bold">
-                <i class="ph ph-grain me-2"></i>
-                Rice Prediction
-            </h1>
-        </a>
-
-        <div class="sidebar-menu-wrapper overflow-y-auto scroll-sm">
-            <div class="p-20 pt-10">
-                <ul class="sidebar-menu">
-                    <!-- Dashboard -->
-                    <li class="sidebar-menu__item">
-                        <a href="{{ url_for('dashboard') }}"
-                            class="sidebar-menu__link {% if request.endpoint == 'dashboard' %}active{% endif %}">
-                            <span class="icon"><i class="ph ph-gauge"></i></span>
-                            <span class="text">Dashboard</span>
-                        </a>
-                    </li>
-
-                    <!-- Analisis -->
-                    <li class="sidebar-menu__item">
-                        <a href="{{ url_for('analisis') }}"
-                            class="sidebar-menu__link {% if request.endpoint == 'analisis' %}active{% endif %}">
-                            <span class="icon"><i class="ph ph-chart-line-up"></i></span>
-                            <span class="text">Analisis</span>
-                        </a>
-                    </li>
-
-                    <!-- Prediksi (NEW) -->
-                    <li class="sidebar-menu__item">
-                        <a href="{{ url_for('prediksi') }}"
-                            class="sidebar-menu__link {% if request.endpoint == 'prediksi' %}active{% endif %}">
-                            <span class="icon"><i class="ph ph-sparkle"></i></span>
-                            <span class="text">Prediksi</span>
-                        </a>
-                    </li>
-
-                    <!-- Tentang -->
-                    <li class="sidebar-menu__item">
-                        <a href="{{ url_for('tentang') }}"
-                            class="sidebar-menu__link {% if request.endpoint == 'tentang' %}active{% endif %}">
-                            <span class="icon"><i class="ph ph-info"></i></span>
-                            <span class="text">Tentang</span>
-                        </a>
-                    </li>
-
-                    <!-- Spacer -->
-                    <li class="sidebar-menu__item mt-5 pt-3" style="border-top: 1px solid #F8C471;">
-                        <div class="text-gray-400 text-12 fw-medium px-15 mb-2">SISTEM</div>
-                    </li>
-
-                    <!-- Logout -->
-                    <li class="sidebar-menu__item">
-                        <a href="{{ url_for('logout') }}" class="sidebar-menu__link">
-                            <span class="icon"><i class="ph ph-sign-out"></i></span>
-                            <span class="text">Logout</span>
-                        </a>
+            <div class="side-foot">
+                <ul class="side-nav">
+                    <li><a href="{{ url_for('index') }}" class="side-link">
+                            <i class="ph ph-house-line" aria-hidden="true"></i>Halaman Beranda</a></li>
+                    <li>
+                        <form action="{{ url_for('logout') }}" method="POST"
+                            onsubmit="return confirm('Yakin ingin keluar dari sistem?')">
+                            <button type="submit" class="side-link">
+                                <i class="ph ph-sign-out" aria-hidden="true"></i>Keluar</button>
+                        </form>
                     </li>
                 </ul>
-
             </div>
-        </div>
-    </aside>
+        </aside>
+        <div class="side-overlay" id="sideOverlay"></div>
 
-    <div class="dashboard-main-wrapper">
-        <!-- Header -->
-        <div class="top-navbar flex-between gap-16">
-            <div class="flex-align gap-16">
-                <button type="button" class="toggle-btn d-xl-none d-flex text-26 text-gray-500">
-                    <i class="ph ph-list"></i>
-                </button>
-                <div class="flex-align gap-8">
-                    <span class="model-badge badge-svr">SVR</span>
-                    <span class="model-badge badge-rbf">RBF Kernel</span>
-                    <span class="model-badge badge-ml">Time Series</span>
-                </div>
-            </div>
-
-            <div class="flex-align gap-16">
-                <!-- Notification -->
-                <div class="dropdown">
-                    <button
-                        class="dropdown-btn text-gray-500 w-40 h-40 bg-main-50 hover-bg-main-100 transition-2 rounded-circle text-xl flex-center"
-                        type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="position-relative">
-                            <i class="ph ph-bell"></i>
-                            <span class="alarm-notify position-absolute end-0"></span>
-                        </span>
+        <div class="main">
+            <header class="topbar">
+                <div class="d-flex align-items-center gap-3">
+                    <button type="button" class="menu-toggle" id="menuToggle" aria-controls="sidebar"
+                        aria-expanded="false" aria-label="Buka menu navigasi">
+                        <i class="ph ph-list" aria-hidden="true"></i>
                     </button>
-                    <div class="dropdown-menu dropdown-menu--md border-0 bg-transparent p-0">
-                        <div class="card border border-gray-100 rounded-12">
-                            <div class="card-body p-15 text-center">
-                                <h6 class="mb-2">Model Status</h6>
-                                <p class="text-sm text-gray-500 mb-2">6 SVR Models siap untuk prediksi</p>
-                                <div class="mb-2">
-                                    <span class="badge bg-success mb-1">Active</span>
-                                </div>
-                                <div class="text-11 text-gray-400">
-                                    <div>Avg MAPE: 2.85%</div>
-                                    <div>Periode: 2020-2024</div>
-                                    <div>Kategori: 6 jenis beras</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <p class="topbar-title">{{ self.title() }}</p>
                 </div>
+                <a href="{{ url_for('akun_saya') }}" class="topbar-user" title="Akun saya">
+                    <i class="ph ph-user-circle" aria-hidden="true"></i>
+                    <span>{{ current_user.nama }}</span>
+                    <span class="role-tag">{{ current_user.peran|capitalize }}</span>
+                </a>
+            </header>
 
-                <!-- User Profile -->
-                <div class="dropdown">
-                    <button
-                        class="users arrow-down-icon border border-gray-200 rounded-pill p-4 d-inline-block pe-40 position-relative"
-                        type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="position-relative">
-                            <img src="{{ url_for('static', filename='images/thumbs/user-img.png') }}" alt="User"
-                                class="h-32 w-32 rounded-circle">
-                            <span
-                                class="activation-badge w-8 h-8 position-absolute inset-block-end-0 inset-inline-end-0"></span>
-                        </span>
-                    </button>
-                    <div class="dropdown-menu dropdown-menu--lg border-0 bg-transparent p-0">
-                        <div class="card border border-gray-100 rounded-12">
-                            <div class="card-body">
-                                <div class="flex-align gap-8 mb-20 pb-20 border-bottom border-gray-100">
-                                    <img src="{{ url_for('static', filename='images/thumbs/user-img.png') }}" alt=""
-                                        class="w-54 h-54 rounded-circle">
-                                    <div>
-                                        <h4 class="mb-0">{{ session.get('username', 'User') }}</h4>
-                                        <p class="fw-medium text-13 text-gray-200">Research Admin</p>
-                                    </div>
-                                </div>
-                                <div class="text-center mb-3">
-                                    <small class="text-gray-500 d-block">Role: Administrator</small>
-                                    <small class="text-gray-500 d-block">System: Rice Price Prediction</small>
-                                    <small class="text-gray-500 d-block">Location: Kabupaten Langkat</small>
-                                </div>
-                                <div class="mb-3">
-                                    <div class="text-center">
-                                        <span class="stats-badge">6 Models</span>
-                                        <span class="stats-badge">1.228 Data</span>
-                                        <span class="stats-badge">2.85% MAPE</span>
-                                    </div>
-                                </div>
-                                <div class="pt-8 border-top border-gray-100">
-                                    <a href="{{ url_for('logout') }}"
-                                        class="py-12 text-15 px-20 hover-bg-danger-50 text-gray-300 hover-text-danger-600 rounded-8 flex-align gap-8 fw-medium text-15 w-100">
-                                        <span class="text-2xl text-danger-600 d-flex"><i
-                                                class="ph ph-sign-out"></i></span>
-                                        <span class="text">Log Out</span>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Content Area -->
-        <div class="dashboard-body">
-            <!-- Flash Messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            {% for category, message in messages %}
-            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show m-3"
-                role="alert">
-                <div class="d-flex align-items-center">
-                    {% if category == 'success' %}
-                    <i class="ph ph-check-circle me-2"></i>
-                    {% elif category == 'danger' or category == 'error' %}
-                    <i class="ph ph-x-circle me-2"></i>
-                    {% elif category == 'warning' %}
-                    <i class="ph ph-warning-circle me-2"></i>
-                    {% else %}
-                    <i class="ph ph-info me-2"></i>
-                    {% endif %}
+            <main class="content" id="konten">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
                     {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
+                {% endfor %}
+                {% endwith %}
 
-            {% block content %}
-            <!-- Content akan diisi di sini -->
-            {% endblock %}
-        </div>
+                {% block content %}{% endblock %}
+            </main>
 
-        <!-- Footer -->
-        <div class="dashboard-footer">
-            <div class="flex-between flex-wrap gap-16 p-20">
-                <p class="text-gray-300 text-13 fw-normal">
-                    © 2025 Prediksi Harga Bahan Pangan - Kabupaten Langkat, Sumatera Utara
-                </p>
-                <div class="flex-align gap-16">
-                    <span class="text-gray-400 text-12">Support Vector Regression</span>
-                    <span class="text-gray-400 text-12">•</span>
-                    <span class="text-gray-400 text-12">RBF Kernel</span>
-                    <span class="text-gray-400 text-12">•</span>
-                    <span class="text-gray-400 text-12">Time Series Analysis</span>
-                </div>
-            </div>
+            <footer class="app-foot">
+                {{ research.judul }}
+            </footer>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/jquery-3.7.1.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/boostrap.bundle.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/phosphor-icon.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/apexcharts.min.js') }}"></script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Add fade-in animation
-            const content = document.querySelector('.dashboard-body');
-            if (content) content.classList.add('fade-in');
-
-            // Model badge hover effects
-            const badges = document.querySelectorAll('.model-badge');
-            badges.forEach(badge => {
-                badge.addEventListener('mouseenter', function () {
-                    this.style.transform = 'scale(1.05)';
-                    this.style.transition = 'all 0.2s ease';
-                });
-                badge.addEventListener('mouseleave', function () {
-                    this.style.transform = 'scale(1)';
-                });
-            });
-
-            // Auto-hide flash messages
-            setTimeout(function () {
-                const alerts = document.querySelectorAll('.alert');
-                alerts.forEach(function (alert) {
-                    if (typeof bootstrap !== 'undefined' && bootstrap.Alert) {
-                        const bsAlert = new bootstrap.Alert(alert);
-                        bsAlert.close();
-                    }
-                });
-            }, 5000);
-
-            console.log('🌾 Rice Price Prediction System loaded');
-            console.log('📍 Location: Kabupaten Langkat, Sumatera Utara');
-            console.log('📊 Models: 6 SVR with RBF Kernel');
-            console.log('🎯 Avg MAPE: 2.85%');
-            console.log('🔮 Future Predictions: 730 days available');
-        });
-
-        // Utility functions untuk penelitian
-        function formatRupiah(amount) {
-            return new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0
-            }).format(amount);
-        }
-
-        function getPriceCategory(price) {
-            if (price >= 13000) return 'Super';
-            if (price >= 12000) return 'Medium';
-            return 'Bawah';
-        }
-
-        function getMAPEColor(mape) {
-            if (mape <= 10) return '#27AE60'; // Sangat Baik - Green
-            if (mape <= 20) return '#F39C12'; // Baik - Orange
-            if (mape <= 30) return '#E67E22'; // Cukup - Dark Orange
-            return '#E74C3C'; // Perlu Perbaikan - Red
-        }
-
-        function getMAPEInterpretation(mape) {
-            if (mape <= 10) return 'Sangat Baik';
-            if (mape <= 20) return 'Baik';
-            if (mape <= 30) return 'Cukup';
-            return 'Perlu Perbaikan';
-        }
-    </script>
-
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 

@@ -1,0 +1,77 @@
+{% extends 'layouts/main_layout.html' %}
+{% block title %}Hasil Peramalan{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Hasil Peramalan</h1>
+        <p>Setiap proses peramalan tersimpan di database dan bisa dibuka kembali.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('peramalan') }}" class="btn btn-primary"><i class="ph ph-plus" aria-hidden="true"></i>Proses
+            peramalan baru</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if runs %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Diproses</th>
+                        <th>Oleh</th>
+                        <th>Data</th>
+                        <th>L</th>
+                        <th>r</th>
+                        <th>Latih / Uji</th>
+                        <th>MAE</th>
+                        <th>MAPE</th>
+                        <th>Kriteria</th>
+                        <th>Total Ramalan</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for run in runs %}
+                    <tr>
+                        <td class="text-nowrap">{{ run.dibuat_pada }}<br><small class="text-muted-ink">{{
+                                run.mode_parameter|capitalize }}</small></td>
+                        <td>{{ run.dijalankan_oleh or '-' }}</td>
+                        <td class="text-nowrap">{{ run.n_data }} hari</td>
+                        <td>{{ run.window_length }}</td>
+                        <td>{{ run.grup_r }}</td>
+                        <td class="text-nowrap">{{ run.n_latih }} / {{ run.n_uji }}</td>
+                        <td>{{ run.mae|angka }}</td>
+                        <td>{{ run.mape|angka }}%</td>
+                        <td><span class="badge-kriteria {{ run.kriteria|lower|replace(' ', '-') }}">{{ run.kriteria
+                                }}</span></td>
+                        <td class="text-nowrap">{{ run.total_ramalan|angka(0) }} ton<br><small
+                                class="text-muted-ink">{{ run.horizon }} hari</small></td>
+                        <td class="text-nowrap">
+                            <a href="{{ url_for('peramalan_detail', run_id=run.id) }}"
+                                class="btn btn-sm btn-outline-primary">Detail</a>
+                            {% if is_admin %}
+                            <form action="{{ url_for('peramalan_hapus', run_id=run.id) }}" method="POST"
+                                class="d-inline" onsubmit="return confirm('Hapus hasil peramalan ini?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="ph ph-clock-counter-clockwise" aria-hidden="true"></i>
+            <h2>Belum ada hasil peramalan</h2>
+            <p>Hasil akan muncul di sini setelah peramalan pertama dijalankan.</p>
+            <a href="{{ url_for('peramalan') }}" class="btn btn-primary">Jalankan peramalan</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

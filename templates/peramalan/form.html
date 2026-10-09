@@ -1,0 +1,122 @@
+{% extends 'layouts/main_layout.html' %}
+{% block title %}Proses Peramalan{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Proses Peramalan SSA</h1>
+        <p>Tentukan parameter, lalu sistem menjalankan embedding, SVD, grouping, diagonal averaging, dan Recurrent SSA.
+            Hasilnya tersimpan di menu Hasil Peramalan.</p>
+    </div>
+</div>
+
+{% if problem %}
+<div class="alert alert-warning">{{ problem }} <a href="{{ url_for('data_produksi') }}">Buka Data Produksi</a></div>
+{% endif %}
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <form class="card" method="POST" id="formPeramalan">
+            <div class="card-body p-4">
+                <h2 class="card-title">Parameter</h2>
+                <p class="card-sub">Data tersedia: <strong class="text-body">{{ n_data }} hari</strong></p>
+
+                <fieldset class="mb-4">
+                    <legend class="form-label fs-6">Penentuan window length (L) dan grup (r)</legend>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="mode" id="modeOtomatis" value="otomatis"
+                            {% if params.mode == 'otomatis' %}checked{% endif %}>
+                        <label class="form-check-label" for="modeOtomatis">
+                            Otomatis (coba-coba semua L dan r, pilih MAPE terkecil)
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="mode" id="modeManual" value="manual"
+                            {% if params.mode == 'manual' %}checked{% endif %}>
+                        <label class="form-check-label" for="modeManual">Manual</label>
+                    </div>
+                </fieldset>
+
+                <div class="row g-3 mb-4" id="manualFields">
+                    <div class="col-sm-6">
+                        <label class="form-label" for="L">Window length (L)</label>
+                        <input type="number" class="form-control" id="L" name="L" min="2" value="{{ params.L }}">
+                        <div class="form-text">2 ≤ L ≤ setengah jumlah data latih (<span id="maxL"></span>)</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label" for="r">Jumlah grup sinyal (r)</label>
+                        <input type="number" class="form-control" id="r" name="r" min="1" value="{{ params.r }}">
+                        <div class="form-text">Komponen 1..r = tren + musiman, sisanya noise. 1 ≤ r ≤ L − 1</div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6">
+                        <label class="form-label" for="rasio">Data latih (%)</label>
+                        <input type="number" class="form-control" id="rasio" name="rasio" min="50" max="95"
+                            value="{{ params.rasio }}" required>
+                        <div class="form-text"><span id="infoSplit"></span></div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label" for="horizon">Periode peramalan (hari)</label>
+                        <input type="number" class="form-control" id="horizon" name="horizon" min="1" max="730"
+                            value="{{ params.horizon }}" required>
+                        <div class="form-text">365 hari = 12 bulan ke depan</div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="btnProses" {% if problem %}disabled{% endif %}>
+                    Proses Peramalan
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-body p-4">
+                <h2 class="card-title">Alur perhitungan</h2>
+                <p class="card-sub">Yang dijalankan sistem setelah tombol proses ditekan.</p>
+                <ol class="steps">
+                    <li>Data dibagi berurutan waktu menjadi data latih dan data uji.</li>
+                    <li><strong>Embedding:</strong> data latih dibentuk menjadi matriks lintasan L × K, dengan
+                        K = N − L + 1.</li>
+                    <li><strong>SVD:</strong> matriks lintasan dipecah menjadi nilai singular dan vektor singular.</li>
+                    <li><strong>Grouping:</strong> komponen 1 sebagai tren, komponen 2..r sebagai musiman, sisanya
+                        noise.</li>
+                    <li><strong>Diagonal averaging:</strong> matriks hasil grouping dikembalikan menjadi deret waktu.</li>
+                    <li><strong>Recurrent SSA:</strong> hasil rekonstruksi diproyeksikan sepanjang data uji, lalu
+                        dihitung MAE, MSE, RMSE, dan MAPE.</li>
+                    <li class="pb-0">Model dengan L dan r yang sama dilatih ulang pada seluruh data untuk meramal
+                        periode mendatang.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const nData = {{ n_data }};
+    const el = id => document.getElementById(id);
+
+    function refresh() {
+        const manual = el('modeManual').checked;
+        el('manualFields').style.display = manual ? '' : 'none';
+        el('L').required = el('r').required = manual;
+        const nLatih = Math.round(nData * (Number(el('rasio').value) || 0) / 100);
+        el('infoSplit').textContent = `${nLatih} hari latih, ${nData - nLatih} hari uji`;
+        el('maxL').textContent = Math.floor(nLatih / 2);
+    }
+
+    ['modeOtomatis', 'modeManual', 'rasio'].forEach(id => el(id).addEventListener('input', refresh));
+    refresh();
+
+    el('formPeramalan').addEventListener('submit', () => {
+        el('btnProses').disabled = true;
+        el('btnProses').textContent = el('modeOtomatis').checked
+            ? 'Mencari L dan r terbaik…' : 'Memproses…';
+    });
+</script>
+{% endblock %}

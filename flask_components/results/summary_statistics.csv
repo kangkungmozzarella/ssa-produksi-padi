@@ -1,9 +1,0 @@
-Metrik,Nilai
-Rata-rata MAE (Training),Rp 45
-Rata-rata MAE (Testing),Rp 779
-Rata-rata RMSE (Training),Rp 53
-Rata-rata RMSE (Testing),Rp 834
-Rata-rata MAPE (Training),0.39%
-Rata-rata MAPE (Testing),5.66%
-Best Category (MAPE),Medium II (5.07%)
-Worst Category (MAPE),Bawah I (7.01%)

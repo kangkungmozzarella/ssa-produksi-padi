@@ -1,7 +1,11 @@
 venv/
+.venv/
 __pycache__/
 *.pyc
 .DS_Store
 
-# Generated copy of flask_components/visualizations, auto-recreated by app.py at runtime
-static/visualizations/*.html
+# Database SQLite dibuat otomatis saat aplikasi pertama kali dijalankan
+instance/
+
+# Dokumen skripsi tidak ikut repo
+*.pdf

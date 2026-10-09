@@ -1,0 +1,198 @@
+{% extends 'layouts/main_layout.html' %}
+{% block title %}Kelola Pengguna{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Kelola Pengguna</h1>
+        <p>Buat akun untuk orang yang akan menguji atau memakai sistem, dan atur perannya.</p>
+    </div>
+    <div class="page-actions">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">
+            <i class="ph ph-user-plus" aria-hidden="true"></i>Tambah pengguna
+        </button>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-xl-8">
+        <section class="card h-100">
+            <div class="card-body">
+                <h2 class="card-title">Daftar akun</h2>
+                <p class="card-sub">{{ akun|length }} akun terdaftar.</p>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Nama</th>
+                                <th>Username</th>
+                                <th>Peran</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in akun %}
+                            <tr>
+                                <td>{{ a.nama }}{% if a.id == current_user.id %} <small class="text-muted-ink">(Anda)</small>{% endif %}</td>
+                                <td>{{ a.username }}</td>
+                                <td><span class="role-tag">{{ a.peran|capitalize }}</span></td>
+                                <td class="text-nowrap">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-ubah"
+                                        data-bs-toggle="modal" data-bs-target="#modalUbah" data-id="{{ a.id }}"
+                                        data-username="{{ a.username }}" data-nama="{{ a.nama }}"
+                                        data-peran="{{ a.peran }}" data-self="{{ 1 if a.id == current_user.id else 0 }}"
+                                        aria-label="Ubah akun {{ a.username }}">Ubah</button>
+                                    {% if a.id != current_user.id %}
+                                    <form action="{{ url_for('pengguna_hapus', akun_id=a.id) }}" method="POST"
+                                        class="d-inline" onsubmit="return confirm('Hapus akun {{ a.username }}?')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            aria-label="Hapus akun {{ a.username }}">Hapus</button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-xl-4">
+        <section class="card h-100">
+            <div class="card-body">
+                <h2 class="card-title">Hak akses</h2>
+                <p class="card-sub">Yang dapat dilakukan setiap peran.</p>
+                <h3 class="h6 fw-bold mb-2"><span class="role-tag">User</span></h3>
+                <ul class="ps-3 mb-3">
+                    <li>Melihat dashboard, data produksi, dan riwayat hasil peramalan</li>
+                    <li>Menjalankan proses peramalan untuk menguji sistem</li>
+                    <li>Mengganti password sendiri</li>
+                </ul>
+                <h3 class="h6 fw-bold mb-2"><span class="role-tag">Admin</span></h3>
+                <ul class="ps-3 mb-0">
+                    <li>Semua yang dapat dilakukan user</li>
+                    <li>Menambah, mengubah, menghapus, dan import data produksi</li>
+                    <li>Menghapus riwayat hasil peramalan</li>
+                    <li>Mengelola akun pengguna</li>
+                </ul>
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- Modal tambah -->
+<div class="modal fade" id="modalTambah" tabindex="-1" aria-labelledby="judulTambah" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" action="{{ url_for('pengguna_tambah') }}" method="POST">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="judulTambah">Tambah Pengguna</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label" for="tambahNama">Nama lengkap</label>
+                    <input type="text" class="form-control" id="tambahNama" name="nama" required maxlength="80">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="tambahUsername">Username</label>
+                    <input type="text" class="form-control" id="tambahUsername" name="username" required maxlength="40"
+                        pattern="[A-Za-z0-9._]+" autocomplete="off" aria-describedby="bantuUsername">
+                    <div class="form-text" id="bantuUsername">Huruf, angka, titik, atau garis bawah. Dipakai untuk login.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="tambahPeran">Peran</label>
+                    <select class="form-select" id="tambahPeran" name="peran">
+                        <option value="user" selected>User: melihat data dan menjalankan peramalan</option>
+                        <option value="admin">Admin: akses penuh</option>
+                    </select>
+                </div>
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label class="form-label" for="tambahPassword">Password</label>
+                        <input type="password" class="form-control" id="tambahPassword" name="password" required
+                            minlength="{{ min_password }}" autocomplete="new-password">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label" for="tambahKonfirmasi">Ulangi password</label>
+                        <input type="password" class="form-control" id="tambahKonfirmasi" name="konfirmasi" required
+                            minlength="{{ min_password }}" autocomplete="new-password">
+                    </div>
+                </div>
+                <div class="form-text">Minimal {{ min_password }} karakter.</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-primary">Buat akun</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal ubah -->
+<div class="modal fade" id="modalUbah" tabindex="-1" aria-labelledby="judulUbah" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" id="formUbah" method="POST">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="judulUbah">Ubah Akun <span id="ubahUsername"></span></h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label" for="ubahNama">Nama lengkap</label>
+                    <input type="text" class="form-control" id="ubahNama" name="nama" required maxlength="80">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="ubahPeran">Peran</label>
+                    <select class="form-select" id="ubahPeran" name="peran" aria-describedby="bantuPeran">
+                        <option value="user">User: melihat data dan menjalankan peramalan</option>
+                        <option value="admin">Admin: akses penuh</option>
+                    </select>
+                    <div class="form-text" id="bantuPeran"></div>
+                </div>
+                <fieldset>
+                    <legend class="form-label fs-6 mb-1">Reset password</legend>
+                    <p class="form-text mt-0 mb-2">Kosongkan jika password tidak diubah.</p>
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <label class="form-label" for="ubahPassword">Password baru</label>
+                            <input type="password" class="form-control" id="ubahPassword" name="password"
+                                minlength="{{ min_password }}" autocomplete="new-password">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="ubahKonfirmasi">Ulangi password</label>
+                            <input type="password" class="form-control" id="ubahKonfirmasi" name="konfirmasi"
+                                minlength="{{ min_password }}" autocomplete="new-password">
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('click', e => {
+        const btn = e.target.closest('.btn-ubah');
+        if (!btn) return;
+        const sendiri = btn.dataset.self === '1';
+        document.getElementById('formUbah').action = `/pengguna/${btn.dataset.id}/ubah`;
+        document.getElementById('ubahUsername').textContent = btn.dataset.username;
+        document.getElementById('ubahNama').value = btn.dataset.nama;
+        const peran = document.getElementById('ubahPeran');
+        peran.value = btn.dataset.peran;
+        // Admin tidak boleh menurunkan perannya sendiri (juga dicek di server)
+        peran.querySelector('option[value="user"]').disabled = sendiri && btn.dataset.peran === 'admin';
+        document.getElementById('bantuPeran').textContent = sendiri ? 'Peran akun Anda sendiri tidak dapat diturunkan.' : '';
+        document.getElementById('ubahPassword').value = '';
+        document.getElementById('ubahKonfirmasi').value = '';
+    });
+</script>
+{% endblock %}

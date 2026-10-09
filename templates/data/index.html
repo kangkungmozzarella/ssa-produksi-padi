@@ -1,0 +1,205 @@
+{% extends 'layouts/main_layout.html' %}
+{% block title %}Data Produksi{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Data Produksi Padi</h1>
+        <p>Produksi harian (ton) yang menjadi masukan peramalan SSA. Data harus berurutan setiap hari tanpa tanggal
+            yang terlewat.{% if not is_admin %} Perubahan data hanya dapat dilakukan oleh admin.{% endif %}</p>
+    </div>
+    {% if is_admin %}
+    <div class="page-actions">
+        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalImport">
+            <i class="ph ph-upload-simple" aria-hidden="true"></i>Import file
+        </button>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">
+            <i class="ph ph-plus" aria-hidden="true"></i>Tambah data
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+{% if problem %}
+<div class="alert alert-warning">{{ problem }}</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-body">
+        {% if rows %}
+        <div class="table-responsive">
+            <table id="tabelProduksi" class="table table-hover w-100">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Tanggal</th>
+                        <th>Produksi (ton)</th>
+                        {% if is_admin %}<th>Aksi</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td data-order="{{ row.tanggal }}">{{ row.tanggal|tgl }}</td>
+                        <td>{{ row.ton|angka }}</td>
+                        {% if is_admin %}
+                        <td class="text-nowrap">
+                            <button type="button" class="btn btn-sm btn-outline-secondary btn-ubah"
+                                data-bs-toggle="modal" data-bs-target="#modalUbah" data-id="{{ row.id }}"
+                                data-tanggal="{{ row.tanggal }}" data-ton="{{ row.ton }}"
+                                aria-label="Ubah data {{ row.tanggal|tgl }}">Ubah</button>
+                            <form action="{{ url_for('data_hapus', row_id=row.id) }}" method="POST" class="d-inline"
+                                onsubmit="return confirm('Hapus data {{ row.tanggal|tgl }}?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                    aria-label="Hapus data {{ row.tanggal|tgl }}">Hapus</button>
+                            </form>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="ph ph-database" aria-hidden="true"></i>
+            <h2>Belum ada data produksi</h2>
+            {% if is_admin %}
+            <p>Import file Excel dari pabrik (format blok <em>No | Bulan | Ton</em>) atau tambahkan data harian satu per
+                satu.</p>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalImport">Import
+                file Excel</button>
+            {% else %}
+            <p>Data produksi akan muncul di sini setelah admin memasukkannya.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if is_admin %}
+
+<!-- Modal tambah -->
+<div class="modal fade" id="modalTambah" tabindex="-1" aria-labelledby="judulTambah" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" action="{{ url_for('data_tambah') }}" method="POST">
+            <div class="modal-header">
+                <h5 class="modal-title" id="judulTambah">Tambah Data Produksi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label" for="tambahTanggal">Tanggal</label>
+                    <input type="date" class="form-control" id="tambahTanggal" name="tanggal" required>
+                </div>
+                <div>
+                    <label class="form-label" for="tambahTon">Produksi (ton)</label>
+                    <input type="number" step="0.01" min="0" class="form-control" id="tambahTon" name="ton" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal ubah -->
+<div class="modal fade" id="modalUbah" tabindex="-1" aria-labelledby="judulUbah" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" id="formUbah" method="POST">
+            <div class="modal-header">
+                <h5 class="modal-title" id="judulUbah">Ubah Data Produksi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label" for="ubahTanggal">Tanggal</label>
+                    <input type="date" class="form-control" id="ubahTanggal" name="tanggal" required>
+                </div>
+                <div>
+                    <label class="form-label" for="ubahTon">Produksi (ton)</label>
+                    <input type="number" step="0.01" min="0" class="form-control" id="ubahTon" name="ton" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal import -->
+<div class="modal fade" id="modalImport" tabindex="-1" aria-labelledby="judulImport" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" action="{{ url_for('data_import') }}" method="POST" enctype="multipart/form-data">
+            <div class="modal-header">
+                <h5 class="modal-title" id="judulImport">Import Data Produksi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label" for="fileImport">File (.xlsx atau .csv)</label>
+                    <input type="file" class="form-control" id="fileImport" name="file" accept=".xlsx,.xls,.csv"
+                        required>
+                    <div class="form-text">
+                        Mendukung format Excel mentah dari pabrik (blok tabel <em>No | Bulan | Ton</em> dengan judul
+                        "Tahun YYYY") atau tabel rapi dengan kolom <em>tanggal</em> dan <em>ton</em>.
+                    </div>
+                </div>
+                <fieldset>
+                    <legend class="form-label fs-6">Cara import</legend>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="mode" id="modeGabung" value="gabung"
+                            checked>
+                        <label class="form-check-label" for="modeGabung">Gabungkan (tanggal yang sama diperbarui)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="mode" id="modeGanti" value="ganti">
+                        <label class="form-check-label" for="modeGanti">Ganti semua data lama</label>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-primary" id="btnImport">Import</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    if (document.querySelector('#tabelProduksi')) {
+        new DataTable('#tabelProduksi', {
+            pageLength: 31,
+            lengthMenu: [31, 62, 100, 366],
+            order: [[1, 'asc']],
+            {% if is_admin %}columnDefs: [{ targets: 3, orderable: false, searchable: false }],{% endif %}
+        });
+    }
+</script>
+{% if is_admin %}
+<script>
+    // Loading state saat file diunggah dan dibaca server
+    document.querySelector('#modalImport form').addEventListener('submit', () => {
+        const btn = document.getElementById('btnImport');
+        btn.disabled = true;
+        btn.textContent = 'Membaca file…';
+    });
+
+    document.addEventListener('click', e => {
+        const btn = e.target.closest('.btn-ubah');
+        if (!btn) return;
+        document.querySelector('#formUbah').action = `/data/${btn.dataset.id}/ubah`;
+        document.querySelector('#ubahTanggal').value = btn.dataset.tanggal;
+        document.querySelector('#ubahTon').value = btn.dataset.ton;
+    });
+</script>
+{% endif %}
+{% endblock %}

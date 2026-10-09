@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peramalan Produksi Padi · KP. Putra Yusima</title>
+    <meta name="description" content="{{ research.judul }}">
+    {% include 'partials/head_assets.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/public.css') }}">
+</head>
+
+<body>
+    <a class="skip-link" href="#konten">Lompat ke konten</a>
+
+    <header class="site-head">
+        <div class="wrap">
+            <a href="{{ url_for('index') }}" class="site-brand">
+                <strong>Peramalan Produksi Padi</strong>
+                <span>Pabrik KP. Putra Yusima</span>
+            </a>
+            <nav class="site-nav" aria-label="Navigasi beranda">
+                <a href="#penelitian">Penelitian</a>
+                <a href="#metode">Metode</a>
+                {% if stats %}<a href="#data">Data produksi</a>{% endif %}
+                <a href="#hasil">Hasil</a>
+            </nav>
+            {% if logged_in %}
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary site-cta">Buka dashboard</a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-outline-primary site-cta">Masuk admin</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <main id="konten">
+        <!-- Hero: judul penelitian + contoh embedding dari data asli -->
+        <section class="hero">
+            <div class="wrap">
+                <div class="row g-4 g-lg-5 align-items-center">
+                    <div class="col-lg-7">
+                        <span class="chapter-mark">Penelitian skripsi</span>
+                        <h1>Peramalan tingkat produksi padi di Pabrik KP. Putra Yusima</h1>
+                        <p class="lead">Desa Masjid, Kecamatan Meurah Mulia, Kabupaten Aceh Utara. Produksi harian
+                            pabrik diuraikan menjadi tren, pola musiman, dan noise dengan metode Singular Spectrum
+                            Analysis (SSA), lalu diproyeksikan ke periode berikutnya.</p>
+                        <div class="hero-actions">
+                            <a href="#hasil" class="btn btn-primary">Lihat hasil peramalan</a>
+                            <a href="#metode" class="btn btn-light">Pelajari tahapan SSA</a>
+                        </div>
+                        {% if stats %}
+                        <p class="hero-meta mb-0"><i class="ph ph-calendar-blank" aria-hidden="true"></i>
+                            {{ stats.n }} hari data produksi, {{ stats.awal|tgl }} sampai {{ stats.akhir|tgl }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-lg-5">
+                        {% if matriks %}
+                        <figure class="matrix-card mb-0" id="matriks">
+                            <h2>Tahap embedding pada data asli</h2>
+                            <p class="note">Delapan hari pertama produksi (ton) disusun menjadi matriks lintasan
+                                L × K dengan L = {{ matriks.L }}.</p>
+                            <div class="series-row" aria-hidden="true">
+                                {% for v in matriks.deret %}
+                                <div class="series-cell" data-k="{{ loop.index0 }}"><small>x{{ loop.index }}</small><b>{{
+                                        v|angka(0) }}</b></div>
+                                {% endfor %}
+                            </div>
+                            <table class="hankel">
+                                <caption class="visually-hidden">Matriks lintasan {{ matriks.L }} × {{ matriks.K }}
+                                </caption>
+                                <thead>
+                                    <tr>
+                                        <th scope="col"><span class="visually-hidden">Baris</span></th>
+                                        {% for j in range(matriks.K) %}<th scope="col">X{{ j + 1 }}</th>{% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for baris in matriks.baris %}
+                                    {% set i = loop.index0 %}
+                                    <tr>
+                                        <th scope="row">baris {{ i + 1 }}</th>
+                                        {% for v in baris %}
+                                        <td tabindex="0" data-k="{{ i + loop.index0 }}"
+                                            aria-label="baris {{ i + 1 }}, kolom {{ loop.index }}: x{{ i + loop.index }} = {{ v|angka(0) }} ton, tanggal {{ matriks.tanggal[i + loop.index0] }}">
+                                            {{ v|angka(0) }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <figcaption class="matrix-caption">K = N − L + 1 = 8 − {{ matriks.L }} + 1 = {{ matriks.K }}.
+                                Arahkan kursor atau tekan Tab ke sebuah sel: satu anti-diagonal selalu berisi hari yang
+                                sama ({{ matriks.tanggal[0] }} sampai {{ matriks.tanggal[-1] }}).</figcaption>
+                        </figure>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bab 1 -->
+        <section class="section" id="penelitian">
+            <div class="wrap">
+                <div class="row g-4 g-lg-5">
+                    <div class="col-lg-4">
+                        <span class="chapter-mark">Bab 1 · Pendahuluan</span>
+                        <h2 class="h1 fw-bold">Mengapa produksi padi perlu diramal</h2>
+                    </div>
+                    <div class="col-lg-8 prose">
+                        <p>Fluktuasi produksi padi berdampak pada pasokan gabah, harga, dan kelangsungan operasional
+                            pabrik penggilingan. Perkiraan produksi untuk periode mendatang membantu pabrik
+                            merencanakan pengadaan gabah, jadwal mesin penggilingan dan tenaga kerja, serta kapasitas
+                            gudang.</p>
+                        <p class="mb-4">Data produksi berbentuk deret waktu yang memuat tren, pola musiman dari siklus
+                            tanam dan panen, serta fluktuasi acak. SSA dipilih karena bersifat nonparametrik: tidak
+                            memerlukan uji asumsi seperti stasioneritas, independensi, atau normalitas residual, dan
+                            mampu memisahkan ketiga komponen tersebut.</p>
+                        {% include 'partials/rumusan_tujuan.html' %}
+                        <details class="mt-4">
+                            <summary class="fw-semibold">Batasan masalah</summary>
+                            <div class="mt-2">{% include 'partials/batasan.html' %}</div>
+                        </details>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bab 2 & 3 -->
+        <section class="section band" id="metode">
+            <div class="wrap">
+                <div class="section-head">
+                    <span class="chapter-mark">Bab 2 dan 3 · Metode</span>
+                    <h2>Cara kerja Singular Spectrum Analysis</h2>
+                    <p>Deret produksi diuraikan, dibersihkan dari noise, lalu diproyeksikan. Nilai window length (L)
+                        ditentukan dengan coba-coba dan dipilih yang menghasilkan MAPE terkecil pada data uji.</p>
+                </div>
+
+                <div class="phases mb-4">
+                    <div class="phase">
+                        <div class="phase-name">Dekomposisi <span>tahap 1</span></div>
+                        <dl>
+                            <dt>Embedding</dt>
+                            <dd>Deret sepanjang N diubah menjadi matriks lintasan L × K, dengan K = N − L + 1.</dd>
+                            <dt>Singular Value Decomposition</dt>
+                            <dd>Matriks lintasan dipecah menjadi nilai singular dan vektor singular, yaitu
+                                komponen-komponen penyusun data.</dd>
+                        </dl>
+                    </div>
+                    <div class="phase">
+                        <div class="phase-name">Rekonstruksi <span>tahap 2</span></div>
+                        <dl>
+                            <dt>Grouping</dt>
+                            <dd>Komponen dikelompokkan dengan parameter r menjadi tren dan musiman. Sisanya dianggap
+                                noise dan dibuang.</dd>
+                            <dt>Diagonal averaging</dt>
+                            <dd>Matriks hasil grouping dikembalikan menjadi deret waktu yang bersih dari noise.</dd>
+                        </dl>
+                    </div>
+                    <div class="phase">
+                        <div class="phase-name">Peramalan <span>tahap 3</span></div>
+                        <dl>
+                            <dt>Recurrent SSA</dt>
+                            <dd>Deret hasil rekonstruksi diteruskan ke periode mendatang memakai relasi rekurensi
+                                linear.</dd>
+                        </dl>
+                    </div>
+                    <div class="phase">
+                        <div class="phase-name">Evaluasi <span>tahap 4</span></div>
+                        <dl>
+                            <dt>MAE, MSE, RMSE, MAPE</dt>
+                            <dd>Ramalan pada data uji dibandingkan dengan nilai aktualnya.</dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="row g-4 align-items-center">
+                    <div class="col-lg-5">
+                        <h3 class="h4">Kapan sebuah ramalan dianggap baik?</h3>
+                        <p class="muted-on-dark mb-0">Akurasi dinilai dari MAPE, yaitu rata-rata persentase selisih
+                            antara ramalan dan produksi sebenarnya. Semakin kecil, semakin akurat.</p>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="criteria">{% include 'partials/kriteria_mape.html' %}</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {% if stats %}
+        <!-- Data -->
+        <section class="section" id="data">
+            <div class="wrap">
+                <div class="row g-4 align-items-end mb-3">
+                    <div class="col-lg-6">
+                        <span class="chapter-mark">Data penelitian</span>
+                        <h2 class="h1 fw-bold mb-2">Produksi harian {{ stats.awal.year }}</h2>
+                        <p class="text-muted-ink mb-0">Catatan produksi padi (ton) Pabrik KP. Putra Yusima,
+                            {{ stats.awal|tgl }} sampai {{ stats.akhir|tgl }}.</p>
+                    </div>
+                    <div class="col-lg-6">
+                        <dl class="row row-cols-2 row-cols-sm-4 g-3 mb-0 text-lg-end">
+                            <div class="col">
+                                <dt class="figure-label">Total</dt>
+                                <dd class="figure mb-0">{{ stats.total|angka(0) }}<small> ton</small></dd>
+                            </div>
+                            <div class="col">
+                                <dt class="figure-label">Rata-rata/hari</dt>
+                                <dd class="figure mb-0">{{ stats.rata|angka(1) }}</dd>
+                            </div>
+                            <div class="col">
+                                <dt class="figure-label">Terendah</dt>
+                                <dd class="figure mb-0">{{ stats.min|angka(0) }}</dd>
+                            </div>
+                            <div class="col">
+                                <dt class="figure-label">Tertinggi</dt>
+                                <dd class="figure mb-0">{{ stats.max|angka(0) }}</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div id="chartData" role="img"
+                            aria-label="Grafik produksi padi harian {{ stats.awal|tgl }} sampai {{ stats.akhir|tgl }}, antara {{ stats.min|angka(0) }} dan {{ stats.max|angka(0) }} ton per hari">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Hasil -->
+        <section class="section" id="hasil">
+            <div class="wrap">
+                {% if latest and ramalan %}
+                <div class="row g-4 g-lg-5 align-items-center mb-4">
+                    <div class="col-lg-5">
+                        <span class="chapter-mark">Hasil peramalan terakhir</span>
+                        <h2 class="h1 fw-bold mb-3">Akurasi pada data uji</h2>
+                        <div class="result-figure">{{ latest.mape|angka }}<small>%</small></div>
+                        <p class="mt-2 mb-0"><span class="badge-kriteria {{ latest.kriteria|lower|replace(' ', '-') }}">{{
+                                latest.kriteria }}</span> <span class="text-muted-ink ms-1">menurut Tabel 2.1</span></p>
+                    </div>
+                    <div class="col-lg-7">
+                        <dl class="facts">
+                            <dt>Parameter</dt>
+                            <dd>L = {{ latest.window_length }}, r = {{ latest.grup_r }} (dipilih {{ latest.mode_parameter
+                                }})</dd>
+                            <dt>Data latih / uji</dt>
+                            <dd>{{ latest.n_latih }} / {{ latest.n_uji }} hari</dd>
+                            <dt>MAE · RMSE</dt>
+                            <dd>{{ latest.mae|angka }} ton · {{ latest.rmse|angka }} ton</dd>
+                            <dt>Total ramalan</dt>
+                            <dd><strong>{{ latest.total_ramalan|angka(0) }} ton</strong> untuk {{ latest.horizon }} hari,
+                                {{ ramalan.awal|tgl }} sampai {{ ramalan.akhir|tgl }}</dd>
+                            <dt>Diproses</dt>
+                            <dd>{{ latest.dibuat_pada }}</dd>
+                        </dl>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Produksi aktual dan ramalan</h3>
+                        <p class="card-sub">Garis hijau adalah data aktual, garis emas adalah hasil ramalan.</p>
+                        <div id="chartHasil" role="img"
+                            aria-label="Grafik data aktual dan ramalan produksi {{ latest.horizon }} hari ke depan"></div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="card">
+                    <div class="empty-state">
+                        <i class="ph ph-chart-line-up" aria-hidden="true"></i>
+                        <h2>Belum ada hasil peramalan</h2>
+                        <p>Hasil akan tampil di sini setelah admin menjalankan proses peramalan dari dalam sistem.</p>
+                        <a href="{{ url_for('login') }}" class="btn btn-primary">Masuk admin</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-foot">
+        <div class="wrap">
+            <span>{{ research.judul }}</span>
+            <a href="{{ url_for('dashboard' if logged_in else 'login') }}">{{ 'Buka dashboard' if logged_in else
+                'Masuk admin' }}</a>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/apexcharts.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        // Sorot anti-diagonal matriks lintasan (sel dengan i + j sama) beserta nilai x yang membentuknya
+        (() => {
+            const kartu = document.getElementById('matriks');
+            if (!kartu) return;
+            const sorot = k => kartu.querySelectorAll('[data-k]').forEach(el =>
+                el.classList.toggle('is-diag', k !== null && el.dataset.k === k));
+            kartu.querySelectorAll('td[data-k]').forEach(td => {
+                td.addEventListener('mouseenter', () => sorot(td.dataset.k));
+                td.addEventListener('focus', () => sorot(td.dataset.k));
+                td.addEventListener('mouseleave', () => sorot(null));
+                td.addEventListener('blur', () => sorot(null));
+            });
+        })();
+
+        {% if chart %}
+        const dataChart = {{ chart | tojson }};
+        new ApexCharts(document.querySelector('#chartData'), {
+            ...chartBase,
+            chart: { ...chartBase.chart, type: 'line', height: 340 },
+            series: [{ name: 'Produksi', data: dataChart.tanggal.map((t, i) => [t, dataChart.ton[i]]) }],
+            colors: [WARNA.aktual],
+            stroke: { width: 1.5 },
+            xaxis: { type: 'datetime' },
+        }).render();
+        {% endif %}
+
+        {% if chart and ramalan %}
+        const dataRamalan = {{ ramalan | tojson }};
+        new ApexCharts(document.querySelector('#chartHasil'), {
+            ...chartBase,
+            chart: { ...chartBase.chart, type: 'line', height: 360 },
+            series: [
+                { name: 'Aktual', data: dataChart.tanggal.map((t, i) => [t, dataChart.ton[i]]) },
+                { name: 'Ramalan', data: dataRamalan.tanggal.map((t, i) => [t, dataRamalan.nilai[i]]) },
+            ],
+            colors: [WARNA.aktual, WARNA.ramalan],
+            stroke: { width: [1.2, 2.5] },
+            xaxis: { type: 'datetime' },
+        }).render();
+        {% endif %}
+    </script>
+</body>
+
+</html>

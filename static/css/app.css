@@ -1,0 +1,632 @@
+/*
+ * Tampilan aplikasi Peramalan Produksi Padi (SSA).
+ * Dimuat setelah bootstrap.min.css. Menggantikan main.css bawaan template admin.
+ *
+ * Arah desain: tenang & akademik.
+ *   - Hijau padi tua sebagai warna utama, krem gabah sebagai latar, emas gabah sebagai satu-satunya aksen
+ *     (dipakai untuk garis ramalan, fokus keyboard, dan penanda bab).
+ *   - Judul & angka besar memakai serif (nuansa naskah ilmiah), teks & tabel memakai sans yang serumpun.
+ *   - Tema terang saja: aplikasi dipresentasikan lewat proyektor saat sidang dan sebagian dicetak.
+ */
+
+:root {
+    --ink: #1E2A20;
+    --muted: #535C4E;
+    --green-950: #17301F;
+    --green-900: #1F3B29;
+    --green-800: #244B32;
+    --green-700: #2E5E3E;
+    --green-100: #E3EDE2;
+    --green-50: #F0F5EE;
+    --cream: #F5F0E3;
+    --cream-300: #E8DFC8;
+    --surface: #FFFDF8;
+    --line: #E3DBC6;
+    --line-strong: #CFC4A8;
+    --gold: #B7861F;
+    --gold-ink: #7A5710;
+    --gold-50: #FBF3DF;
+    --danger: #A23B2A;
+
+    --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+    --font-sans: 'Source Sans 3', 'Segoe UI', system-ui, -apple-system, sans-serif;
+
+    --radius-sm: 6px;
+    --radius: 10px;
+    --radius-lg: 14px;
+    /* Satu tingkat elevasi untuk permukaan di atas latar krem, satu lagi untuk modal & kartu login */
+    --shadow-1: 0 1px 2px rgba(31, 59, 41, .06), 0 1px 1px rgba(31, 59, 41, .04);
+    --shadow-2: 0 12px 32px rgba(31, 59, 41, .14);
+
+    --bs-body-font-family: var(--font-sans);
+    --bs-body-color: var(--ink);
+    --bs-body-bg: var(--cream);
+    --bs-border-color: var(--line);
+    --bs-link-color: var(--green-700);
+    --bs-link-color-rgb: 46, 94, 62;
+    --bs-link-hover-color: var(--green-900);
+    --bs-link-hover-color-rgb: 31, 59, 41;
+    --bs-emphasis-color: var(--ink);
+    --bs-secondary-color: var(--muted);
+}
+
+/* ------------------------------------------------------------------ dasar */
+body {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    color: var(--ink);
+    background: var(--cream);
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .serif {
+    font-family: var(--font-serif);
+    color: var(--ink);
+    letter-spacing: -.01em;
+}
+
+.text-muted-ink { color: var(--muted) !important; }
+.tnum { font-variant-numeric: tabular-nums; }
+
+a { text-underline-offset: 3px; }
+
+/* Fokus keyboard yang jelas di semua elemen interaktif (menggantikan outline bawaan, bukan menghapusnya) */
+:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible,
+.form-check-input:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+    box-shadow: none;
+}
+
+.skip-link {
+    position: absolute;
+    left: 12px;
+    top: -60px;
+    z-index: 2000;
+    padding: 10px 16px;
+    background: var(--green-900);
+    color: #fff;
+    border-radius: var(--radius-sm);
+}
+
+.skip-link:focus { top: 12px; color: #fff; }
+
+/* Penanda bab: menautkan setiap bagian ke naskah skripsi */
+.chapter-mark {
+    display: inline-block;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: .95rem;
+    color: var(--gold-ink);
+    margin-bottom: 6px;
+}
+
+/* ------------------------------------------------------------------ tombol & form */
+.btn {
+    --bs-btn-padding-y: .55rem;
+    --bs-btn-padding-x: 1.05rem;
+    --bs-btn-font-weight: 600;
+    --bs-btn-border-radius: var(--radius-sm);
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-sm {
+    --bs-btn-padding-y: .3rem;
+    --bs-btn-padding-x: .7rem;
+    --bs-btn-font-size: .875rem;
+    min-height: 34px;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--green-700);
+    --bs-btn-border-color: var(--green-700);
+    --bs-btn-hover-bg: var(--green-800);
+    --bs-btn-hover-border-color: var(--green-800);
+    --bs-btn-active-bg: var(--green-900);
+    --bs-btn-active-border-color: var(--green-900);
+    --bs-btn-disabled-bg: var(--green-700);
+    --bs-btn-disabled-border-color: var(--green-700);
+}
+
+.btn-outline-primary,
+.btn-outline-success {
+    --bs-btn-color: var(--green-700);
+    --bs-btn-border-color: var(--green-700);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--green-700);
+    --bs-btn-hover-border-color: var(--green-700);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--green-800);
+    --bs-btn-active-border-color: var(--green-800);
+}
+
+.btn-outline-secondary {
+    --bs-btn-color: var(--ink);
+    --bs-btn-border-color: var(--line-strong);
+    --bs-btn-hover-color: var(--ink);
+    --bs-btn-hover-bg: var(--cream-300);
+    --bs-btn-hover-border-color: var(--line-strong);
+    --bs-btn-active-color: var(--ink);
+    --bs-btn-active-bg: var(--cream-300);
+    --bs-btn-active-border-color: var(--line-strong);
+}
+
+.btn-outline-danger {
+    --bs-btn-color: var(--danger);
+    --bs-btn-border-color: #D9A79E;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--danger);
+    --bs-btn-hover-border-color: var(--danger);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #86301F;
+    --bs-btn-active-border-color: #86301F;
+}
+
+.btn-light {
+    --bs-btn-color: var(--ink);
+    --bs-btn-bg: var(--surface);
+    --bs-btn-border-color: var(--line-strong);
+    --bs-btn-hover-color: var(--ink);
+    --bs-btn-hover-bg: var(--cream-300);
+    --bs-btn-hover-border-color: var(--line-strong);
+    --bs-btn-active-color: var(--ink);
+    --bs-btn-active-bg: var(--cream-300);
+}
+
+.form-control,
+.form-select {
+    min-height: 44px;
+    border-color: var(--line-strong);
+    border-radius: var(--radius-sm);
+    background-color: #fff;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--green-700);
+    box-shadow: 0 0 0 3px rgba(46, 94, 62, .18);
+}
+
+.form-label { font-weight: 600; }
+.form-text { color: var(--muted); }
+
+.form-check-input:checked {
+    background-color: var(--green-700);
+    border-color: var(--green-700);
+}
+
+.form-check { min-height: 32px; display: flex; align-items: center; gap: 8px; }
+.form-check .form-check-input { margin-top: 0; }
+
+.alert { border-radius: var(--radius); border-width: 1px; }
+.alert-warning { background: var(--gold-50); border-color: #EBD7A6; color: #5E440C; }
+.alert-success { background: var(--green-50); border-color: #C7DBC4; color: var(--green-900); }
+.alert-danger { background: #FBEDEA; border-color: #EBC2BA; color: #7A2A1C; }
+.alert-info { background: #EEF3F1; border-color: #CBDAD4; color: #24433A; }
+.alert a { color: inherit; font-weight: 600; }
+
+/* ------------------------------------------------------------------ kartu */
+.card {
+    --bs-card-bg: var(--surface);
+    --bs-card-border-color: var(--line);
+    --bs-card-border-radius: var(--radius);
+    --bs-card-inner-border-radius: calc(var(--radius) - 1px);
+    box-shadow: var(--shadow-1);
+}
+
+.card-body { padding: 20px 22px; }
+
+.card-title {
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.card-sub { color: var(--muted); font-size: .9rem; margin-bottom: 16px; }
+
+/* ------------------------------------------------------------------ tabel (bergaris penuh, rata tengah) */
+.table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--ink);
+    --bs-table-hover-bg: var(--green-50);
+    --bs-table-striped-bg: transparent;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-top: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+    font-variant-numeric: tabular-nums;
+}
+
+.table > :not(caption) > * > * {
+    border-style: solid;
+    border-color: var(--line);
+    border-width: 0 1px 1px 0;
+    padding: 10px 12px;
+    vertical-align: middle;
+}
+
+.table.table-sm > :not(caption) > * > * { padding: 7px 10px; }
+
+.table th,
+.table td { text-align: center !important; }
+
+.table > thead th {
+    background: var(--green-50);
+    color: var(--green-900);
+    font-weight: 700;
+    font-size: .875rem;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.table > tfoot td { background: var(--cream); font-weight: 700; }
+.table-success > * { --bs-table-bg-state: var(--gold-50) !important; font-weight: 700; }
+
+/* Wadah tabel yang bisa di-scroll: header ikut menempel */
+.table-scroll { max-height: 480px; overflow: auto; border-radius: var(--radius-sm); }
+
+/* ------------------------------------------------------------------ DataTables */
+div.dt-container .dt-layout-row { margin: 0 0 14px; align-items: center; }
+div.dt-container .dt-layout-row:last-child { margin: 14px 0 0; }
+div.dt-container .dt-search label,
+div.dt-container .dt-length label { color: var(--muted); }
+
+div.dt-container .dt-search input,
+div.dt-container .dt-length select {
+    min-height: 40px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    margin-inline: 6px;
+    background: #fff;
+}
+
+div.dt-container .dt-info { color: var(--muted); font-size: .9rem; }
+
+table.dataTable > thead > tr > th { padding: 10px 12px; }
+table.dataTable thead > tr > th.dt-orderable-asc:hover,
+table.dataTable thead > tr > th.dt-orderable-desc:hover { outline: 0; background: var(--green-100); }
+
+div.dt-container .dt-paging,
+div.dt-container .dt-paging nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+div.dt-container .dt-paging .dt-paging-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    margin: 0;
+    padding: 0 10px;
+    font-size: .95rem;
+    white-space: nowrap;
+    color: var(--ink) !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    border-radius: var(--radius-sm) !important;
+}
+
+div.dt-container .dt-paging .dt-paging-button:hover {
+    background: var(--green-100) !important;
+    color: var(--green-900) !important;
+}
+
+div.dt-container .dt-paging .dt-paging-button.current,
+div.dt-container .dt-paging .dt-paging-button.current:hover {
+    color: #fff !important;
+    background: var(--green-700) !important;
+    border-color: var(--green-700) !important;
+}
+
+div.dt-container .dt-paging .dt-paging-button.disabled,
+div.dt-container .dt-paging .dt-paging-button.disabled:hover {
+    opacity: .35;
+    background: transparent !important;
+    color: var(--ink) !important;
+}
+
+/* ------------------------------------------------------------------ label kriteria MAPE (status nyata) */
+.badge-kriteria {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: .85rem;
+    border: 1px solid transparent;
+}
+
+.badge-kriteria.sangat-baik { background: var(--green-100); color: var(--green-900); border-color: #C7DBC4; }
+.badge-kriteria.baik { background: var(--gold-50); color: #5E440C; border-color: #EBD7A6; }
+.badge-kriteria.layak { background: #FCEEDF; color: #7A3E0C; border-color: #EDCBA6; }
+.badge-kriteria.buruk { background: #FBEDEA; color: #7A2A1C; border-color: #EBC2BA; }
+
+/* ------------------------------------------------------------------ tab */
+.nav-tabs {
+    --bs-nav-tabs-border-color: var(--line);
+    --bs-nav-link-color: var(--muted);
+    --bs-nav-link-hover-color: var(--green-900);
+    gap: 4px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.nav-tabs .nav-link {
+    border: 0;
+    border-bottom: 3px solid transparent;
+    font-weight: 600;
+    min-height: 44px;
+    white-space: nowrap;
+    padding: 10px 14px;
+}
+
+.nav-tabs .nav-link:hover { border-bottom-color: var(--line-strong); }
+
+.nav-tabs .nav-link.active {
+    color: var(--green-900);
+    background: transparent;
+    border-bottom-color: var(--green-700);
+}
+
+/* ------------------------------------------------------------------ modal */
+.modal-content {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-2);
+}
+
+.modal-header, .modal-footer { border-color: var(--line); }
+.modal-title { font-family: var(--font-serif); font-weight: 600; }
+
+/* ================================================================== APP SHELL */
+.app {
+    display: grid;
+    grid-template-columns: 248px minmax(0, 1fr);
+    min-height: 100vh;
+}
+
+/* Sidebar hijau tua: memisahkan navigasi dari area kerja dengan jelas tanpa bayangan berlebih */
+.sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--green-900);
+    color: #E9EFE6;
+    padding: 22px 16px;
+    overflow-y: auto;
+}
+
+.brand {
+    display: block;
+    padding: 4px 10px 22px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, .12);
+    color: #fff;
+    text-decoration: none;
+}
+
+.brand:hover { color: #fff; }
+.brand-name { font-family: var(--font-serif); font-size: 1.25rem; font-weight: 700; line-height: 1.2; }
+.brand-place { font-size: .85rem; color: #C9D6C6; margin-top: 4px; }
+
+.side-nav { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+
+.side-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    color: #DCE6D8;
+    text-decoration: none;
+    font-weight: 600;
+    background: none;
+    border: 0;
+    width: 100%;
+    text-align: start;
+}
+
+.side-link i { font-size: 1.25rem; }
+.side-link:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+
+.side-link.active {
+    background: var(--cream);
+    color: var(--green-900);
+}
+
+.side-foot { margin-top: auto; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, .12); }
+
+.main { min-width: 0; display: flex; flex-direction: column; }
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 64px;
+    padding: 10px 32px;
+    background: rgba(245, 240, 227, .94);
+    border-bottom: 1px solid var(--line);
+}
+
+.topbar-title { font-family: var(--font-serif); font-weight: 600; font-size: 1.05rem; margin: 0; }
+.topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 10px;
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.topbar-user:hover { background: var(--cream-300); color: var(--ink); }
+.topbar-user i { font-size: 1.4rem; color: var(--muted); }
+
+/* Peran akun: label status nyata, membedakan apa yang boleh dilakukan */
+.role-tag {
+    font-size: .75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    background: var(--green-100);
+    color: var(--green-900);
+}
+
+@media (max-width: 575.98px) {
+    .topbar-user span:not(.role-tag) { display: none; }
+}
+
+.menu-toggle {
+    display: none;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 1.35rem;
+}
+
+.content { padding: 28px 32px 40px; flex: 1; }
+
+.page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.page-head h1 { font-size: 1.85rem; font-weight: 700; margin: 0 0 4px; }
+.page-head p { color: var(--muted); margin: 0; max-width: 70ch; }
+.page-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.app-foot { padding: 18px 32px; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); }
+
+.side-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 39;
+    background: rgba(23, 48, 31, .45);
+}
+
+@media (max-width: 991.98px) {
+    .app { grid-template-columns: minmax(0, 1fr); }
+
+    .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 40;
+        width: 272px;
+        transform: translateX(-100%);
+        transition: transform .2s ease;
+    }
+
+    .app.nav-open .sidebar { transform: translateX(0); }
+    .app.nav-open .side-overlay { display: block; }
+    .menu-toggle { display: inline-flex; }
+    .topbar { padding: 10px 16px; }
+    .content { padding: 20px 16px 32px; }
+    .app-foot { padding: 16px; }
+    .page-head h1 { font-size: 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar { transition: none; }
+}
+
+/* ------------------------------------------------------------------ angka utama */
+.figure-label { color: var(--muted); font-size: .9rem; font-weight: 600; margin-bottom: 4px; }
+
+.figure {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 1.75rem;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums lining-nums;
+}
+
+.figure-xl { font-size: 3rem; }
+.figure small { font-size: .55em; font-weight: 600; color: var(--muted); }
+
+/* Panel fokus dashboard: hasil peramalan terakhir */
+.focus-panel {
+    background: var(--green-900);
+    color: #EEF3EC;
+    border: 0;
+}
+
+.focus-panel .figure,
+.focus-panel h2 { color: #fff; }
+.focus-panel .figure-label,
+.focus-panel .text-muted-ink { color: #C9D6C6 !important; }
+.focus-panel .figure small { color: #C9D6C6; }
+.focus-panel .divider { border-color: rgba(255, 255, 255, .15) !important; }
+.focus-panel a:not(.btn) { color: #F3D58C; }
+
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 10px 18px; margin: 0; }
+.facts dt { color: var(--muted); font-weight: 600; }
+.facts dd { margin: 0; font-variant-numeric: tabular-nums; }
+
+.steps { list-style: none; padding: 0; margin: 0; counter-reset: langkah; }
+
+.steps li {
+    position: relative;
+    padding: 0 0 14px 40px;
+    counter-increment: langkah;
+}
+
+.steps li::before {
+    content: counter(langkah);
+    position: absolute;
+    left: 0;
+    top: -2px;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    color: var(--green-900);
+    background: var(--green-100);
+    border-radius: 50%;
+}
+
+.empty-state { text-align: center; padding: 40px 16px; }
+.empty-state i { font-size: 2.2rem; color: var(--green-700); }
+.empty-state h2 { font-size: 1.2rem; margin: 10px 0 6px; }
+.empty-state p { color: var(--muted); max-width: 46ch; margin: 0 auto 16px; }

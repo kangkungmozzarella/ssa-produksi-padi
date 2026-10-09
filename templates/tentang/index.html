@@ -1,577 +1,84 @@
-{% extends "layouts/main_layout.html" %}
-
-{% block title %}Tentang Penelitian - Prediksi Harga Bahan Pangan Kabupaten Langkat{% endblock %}
-
-{% block extra_css %}
-<style>
-    .tentang-header {
-        background: linear-gradient(135deg, #E74C3C, #C0392B);
-        color: white;
-        border-radius: 15px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-    }
-    
-    .info-card {
-        border-radius: 15px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.1);
-        transition: transform 0.3s ease;
-        background: white;
-        margin-bottom: 1.5rem;
-        border-left: 4px solid #E74C3C;
-    }
-    
-    .info-card:hover {
-        transform: translateY(-5px);
-    }
-    
-    .info-card h5 {
-        color: #E74C3C;
-        margin-bottom: 1rem;
-        font-weight: 600;
-    }
-    
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin: 1rem 0;
-    }
-    
-    .stat-item {
-        text-align: center;
-        padding: 1rem;
-        background: rgba(231, 76, 60, 0.05);
-        border-radius: 10px;
-        border: 1px solid rgba(231, 76, 60, 0.1);
-    }
-    
-    .stat-value {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #E74C3C;
-    }
-    
-    .stat-label {
-        font-size: 0.9rem;
-        color: #6c757d;
-        margin-top: 0.5rem;
-    }
-    
-    .tech-badge {
-        display: inline-block;
-        padding: 0.4rem 0.8rem;
-        margin: 0.2rem;
-        background: linear-gradient(135deg, #E74C3C, #C0392B);
-        color: white;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 500;
-    }
-    
-    .objective-item {
-        padding: 0.8rem 0;
-        border-bottom: 1px solid #eee;
-    }
-    
-    .objective-item:last-child {
-        border-bottom: none;
-    }
-    
-    .benefit-card {
-        background: rgba(231, 76, 60, 0.05);
-        border-left: 4px solid #F39C12;
-        padding: 1rem;
-        margin-bottom: 0.8rem;
-        border-radius: 0 10px 10px 0;
-    }
-    
-    .methodology-flow {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-        margin: 1rem 0;
-    }
-    
-    .flow-step {
-        flex: 1;
-        min-width: 150px;
-        text-align: center;
-        padding: 1rem;
-        margin: 0.5rem;
-        background: white;
-        border: 2px solid #E74C3C;
-        border-radius: 15px;
-        position: relative;
-    }
-    
-    .flow-step::after {
-        content: '→';
-        position: absolute;
-        right: -25px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 1.5rem;
-        color: #E74C3C;
-    }
-    
-    .flow-step:last-child::after {
-        display: none;
-    }
-
-    @media (max-width: 768px) {
-        .methodology-flow {
-            flex-direction: column;
-        }
-        
-        .flow-step::after {
-            content: '↓';
-            right: 50%;
-            top: auto;
-            bottom: -25px;
-            transform: translateX(50%);
-        }
-        
-        .flow-step:last-child::after {
-            display: none;
-        }
-    }
-</style>
-{% endblock %}
+{% extends 'layouts/main_layout.html' %}
+{% block title %}Tentang Penelitian{% endblock %}
 
 {% block content %}
-<div class="row gy-4">
-    <div class="col-lg-12">
-        <!-- Header Penelitian -->
-        <div class="tentang-header">
-            <div class="text-center">
-                <h1 class="mb-3">{{ research_title }}</h1>
-                <p class="lead mb-2">Menggunakan Support Vector Regression dengan Kernel RBF</p>
-                <div class="mt-4">
-                    <span class="badge bg-danger me-2 px-3 py-2">{{ algorithm }}</span>
-                    <span class="badge bg-warning me-2 px-3 py-2">{{ kernel }}</span>
-                    <span class="badge bg-success px-3 py-2">Time Series</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Informasi Penelitian -->
-        <div class="row mb-4">
-            <div class="col-lg-6">
-                <div class="info-card">
-                    <h5><i class="ph ph-map-pin me-2"></i>Lokasi Penelitian</h5>
-                    <table class="table table-borderless">
-                        <tr>
-                            <td><strong>Wilayah:</strong></td>
-                            <td>{{ research_location }}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Provinsi:</strong></td>
-                            <td>Sumatera Utara</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Fokus:</strong></td>
-                            <td>Harga Bahan Pangan (Beras)</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Kategori:</strong></td>
-                            <td>{{ categories_count }} jenis beras</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Tahun Penelitian:</strong></td>
-                            <td>{{ research_year }}</td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-            
-            <div class="col-lg-6">
-                <div class="info-card">
-                    <h5><i class="ph ph-chart-bar me-2"></i>Rangkuman Dataset</h5>
-                    <table class="table table-borderless">
-                        <tr>
-                            <td><strong>Total Data:</strong></td>
-                            <td>{{ total_records }} hari</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Data Asli:</strong></td>
-                            <td>{{ original_records }} records</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Periode Data:</strong></td>
-                            <td>{{ data_period }}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Split Method:</strong></td>
-                            <td>{{ split_method }}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Train/Test:</strong></td>
-                            <td>{{ train_percentage }}% / {{ test_percentage }}%</td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Statistik Performa Model -->
-        <div class="row mb-4">
-            <div class="col-lg-12">
-                <div class="info-card">
-                    <h5><i class="ph ph-trophy me-2"></i>Hasil Performa Model SVR</h5>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-value">{{ "%.2f"|format(avg_mape) }}%</div>
-                            <div class="stat-label">Average MAPE</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">Rp {{ "{:,.0f}".format(avg_mae) }}</div>
-                            <div class="stat-label">Average MAE</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">{{ interpretation }}</div>
-                            <div class="stat-label">Performance</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">{{ total_records }}</div>
-                            <div class="stat-label">Hari Data</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">{{ categories_count }}</div>
-                            <div class="stat-label">Kategori Beras</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">{{ total_models }}</div>
-                            <div class="stat-label">SVR Models</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Kategori Beras -->
-        <div class="row mb-4">
-            <div class="col-lg-12">
-                <div class="info-card">
-                    <h5><i class="ph ph-grain me-2"></i>Kategori Beras yang Diprediksi</h5>
-                    <div class="row">
-                        {% for category in categories_list %}
-                        <div class="col-lg-4 col-md-6 mb-3">
-                            <div class="benefit-card">
-                                <i class="ph ph-grain text-warning me-2"></i>
-                                <strong>{{ loop.index }}. {{ category }}</strong>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tujuan Penelitian -->
-        <div class="row mb-4">
-            <div class="col-lg-12">
-                <div class="info-card">
-                    <h5><i class="ph ph-target me-2"></i>Tujuan Penelitian</h5>
-                    
-                    <h6 class="text-danger mt-4 mb-3">Tujuan Utama</h6>
-                    <p class="mb-4">Mengembangkan sistem prediksi harga bahan pangan yang akurat menggunakan Support Vector Regression untuk mendukung monitoring harga dan pengambilan kebijakan di Kabupaten Langkat, Sumatera Utara.</p>
-                    
-                    <h6 class="text-danger mb-3">Tujuan Khusus</h6>
-                    <div class="objective-item">
-                        <i class="ph ph-check-circle text-success me-2"></i>Menganalisis pola perubahan harga bahan pangan periode 2020-2024
-                    </div>
-                    <div class="objective-item">
-                        <i class="ph ph-check-circle text-success me-2"></i>Mengimplementasikan algoritma SVR dengan kernel RBF untuk prediksi harga
-                    </div>
-                    <div class="objective-item">
-                        <i class="ph ph-check-circle text-success me-2"></i>Membandingkan performa prediksi pada 6 kategori beras berbeda
-                    </div>
-                    <div class="objective-item">
-                        <i class="ph ph-check-circle text-success me-2"></i>Mengevaluasi akurasi model menggunakan metrik MAPE, MAE, dan RMSE
-                    </div>
-                    <div class="objective-item">
-                        <i class="ph ph-check-circle text-success me-2"></i>Mengintegrasikan model prediksi ke dalam aplikasi web berbasis Flask
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Metodologi -->
-        <div class="row mb-4">
-            <div class="col-lg-12">
-                <div class="info-card">
-                    <h5><i class="ph ph-gear me-2"></i>Metodologi Penelitian</h5>
-                    
-                    <div class="methodology-flow">
-                        <div class="flow-step">
-                            <i class="ph ph-database text-danger mb-2" style="font-size: 2rem;"></i>
-                            <h6>Pengumpulan Data</h6>
-                            <small>1.258 hari data harga + cuaca</small>
-                        </div>
-                        <div class="flow-step">
-                            <i class="ph ph-broom text-danger mb-2" style="font-size: 2rem;"></i>
-                            <h6>Preprocessing</h6>
-                            <small>Time + cuaca + lag + rolling</small>
-                        </div>
-                        <div class="flow-step">
-                            <i class="ph ph-function text-danger mb-2" style="font-size: 2rem;"></i>
-                            <h6>SVR Training</h6>
-                            <small>6 models dengan RBF kernel</small>
-                        </div>
-                        <div class="flow-step">
-                            <i class="ph ph-chart-line text-danger mb-2" style="font-size: 2rem;"></i>
-                            <h6>Evaluasi</h6>
-                            <small>MAPE, MAE, RMSE</small>
-                        </div>
-                        <div class="flow-step">
-                            <i class="ph ph-globe text-danger mb-2" style="font-size: 2rem;"></i>
-                            <h6>Web Application</h6>
-                            <small>Flask deployment</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Model Parameters -->
-        <div class="row mb-4">
-            <div class="col-lg-12">
-                <div class="info-card">
-                    <h5><i class="ph ph-sliders me-2"></i>Parameter Model SVR</h5>
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <div class="stat-item">
-                                <div class="stat-value">{{ model_parameters.C }}</div>
-                                <div class="stat-label">C (Regularization)</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="stat-item">
-                                <div class="stat-value">{{ model_parameters.epsilon }}</div>
-                                <div class="stat-label">Epsilon</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="stat-item">
-                                <div class="stat-value">{{ model_parameters.gamma }}</div>
-                                <div class="stat-label">Gamma</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Features -->
-        <div class="row mb-4">
-            <div class="col-lg-12">
-                <div class="info-card">
-                    <h5><i class="ph ph-list me-2"></i>Feature Engineering</h5>
-                    <div class="row">
-                        <div class="col-lg-3">
-                            <h6 class="text-danger mb-3">Time Features</h6>
-                            {% for feature in time_features %}
-                            <span class="tech-badge">{{ feature }}</span>
-                            {% endfor %}
-                        </div>
-                        <div class="col-lg-3">
-                            <h6 class="mb-3" style="color: #3498DB;">Weather Features</h6>
-                            {% for feature in weather_features %}
-                            <span class="tech-badge" style="background: linear-gradient(135deg, #3498DB, #2980B9);">{{ feature }}</span>
-                            {% endfor %}
-                        </div>
-                        <div class="col-lg-3">
-                            <h6 class="text-warning mb-3">Lag Features</h6>
-                            {% for feature in lag_features %}
-                            <span class="tech-badge" style="background: linear-gradient(135deg, #F39C12, #E67E22);">{{ feature }}</span>
-                            {% endfor %}
-                        </div>
-                        <div class="col-lg-3">
-                            <h6 class="text-success mb-3">Rolling Features</h6>
-                            {% for feature in rolling_features %}
-                            <span class="tech-badge" style="background: linear-gradient(135deg, #27AE60, #229954);">{{ feature }}</span>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Faktor Cuaca -->
-        <div class="row mb-4">
-            <div class="col-lg-12">
-                <div class="info-card">
-                    <h5><i class="ph ph-cloud-rain me-2"></i>Faktor Cuaca terhadap Harga Beras</h5>
-                    <p class="text-muted mb-3">
-                        Berdasarkan revisi penelitian, faktor cuaca (Temperatur &amp; Curah Hujan) ditambahkan sebagai variabel eksogen
-                        karena berpotensi memengaruhi pasokan dan hasil panen. Tabel di bawah menunjukkan koefisien korelasi Pearson
-                        antara masing-masing faktor cuaca dengan harga tiap kategori beras.
-                    </p>
-                    {% if weather_price_correlation %}
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-sm align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Kategori Beras</th>
-                                    <th>Korelasi Temperatur</th>
-                                    <th>Korelasi Curah Hujan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for kategori, corr in weather_price_correlation.items() %}
-                                <tr>
-                                    <td>{{ kategori.replace('Beras Kualitas ', '') }}</td>
-                                    <td>{{ "%.3f"|format(corr.Temperatur) }}</td>
-                                    <td>{{ "%.3f"|format(corr.Curah_Hujan) }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <p class="text-muted small mb-0">
-                        <i class="ph ph-info me-1"></i>Korelasi relatif lemah (|r| &lt; 0.2) menunjukkan cuaca bukan faktor dominan
-                        dibanding pola harga historis (lag/rolling), namun tetap relevan dimasukkan sebagai variabel eksogen.
-                    </p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Teknologi yang Digunakan -->
-        <div class="row mb-4">
-            <div class="col-lg-6">
-                <div class="info-card">
-                    <h5><i class="ph ph-code me-2"></i>Backend & Machine Learning</h5>
-                    <span class="tech-badge">Python 3.11</span>
-                    <span class="tech-badge">Flask</span>
-                    <span class="tech-badge">Scikit-learn</span>
-                    <span class="tech-badge">Pandas</span>
-                    <span class="tech-badge">NumPy</span>
-                    <span class="tech-badge">Plotly</span>
-                </div>
-            </div>
-            
-            <div class="col-lg-6">
-                <div class="info-card">
-                    <h5><i class="ph ph-monitor me-2"></i>Frontend & Visualization</h5>
-                    <span class="tech-badge">HTML5</span>
-                    <span class="tech-badge">CSS3</span>
-                    <span class="tech-badge">JavaScript</span>
-                    <span class="tech-badge">Bootstrap 5</span>
-                    <span class="tech-badge">Phosphor Icons</span>
-                    <span class="tech-badge">Chart.js</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Manfaat Penelitian -->
-        <div class="row mb-4">
-            <div class="col-lg-12">
-                <div class="info-card">
-                    <h5><i class="ph ph-lightbulb me-2"></i>Manfaat Penelitian</h5>
-                    <div class="row">
-                        <div class="col-lg-6 mb-3">
-                            <div class="benefit-card">
-                                <i class="ph ph-check-circle text-success me-2"></i>
-                                <strong>Pemerintah Daerah:</strong> Monitoring harga untuk stabilitas pangan
-                            </div>
-                        </div>
-                        <div class="col-lg-6 mb-3">
-                            <div class="benefit-card">
-                                <i class="ph ph-check-circle text-success me-2"></i>
-                                <strong>Pedagang:</strong> Prediksi tren harga untuk perencanaan stok
-                            </div>
-                        </div>
-                        <div class="col-lg-6 mb-3">
-                            <div class="benefit-card">
-                                <i class="ph ph-check-circle text-success me-2"></i>
-                                <strong>Konsumen:</strong> Informasi transparansi harga bahan pangan
-                            </div>
-                        </div>
-                        <div class="col-lg-6 mb-3">
-                            <div class="benefit-card">
-                                <i class="ph ph-check-circle text-success me-2"></i>
-                                <strong>Peneliti:</strong> Referensi untuk prediksi harga komoditas lain
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Range Harga -->
-        <div class="row mb-4">
-            <div class="col-lg-12">
-                <div class="info-card">
-                    <h5><i class="ph ph-currency-dollar me-2"></i>Range Harga Beras</h5>
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <div class="stat-item">
-                                <div class="stat-value">Rp {{ "{:,.0f}".format(price_min) }}</div>
-                                <div class="stat-label">Harga Minimum</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="stat-item">
-                                <div class="stat-value">Rp {{ "{:,.0f}".format(price_max) }}</div>
-                                <div class="stat-label">Harga Maximum</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="stat-item">
-                                <div class="stat-value">Rp {{ "{:,.0f}".format(price_avg) }}</div>
-                                <div class="stat-label">Harga Rata-rata</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Kesimpulan -->
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="info-card">
-                    <h5><i class="ph ph-check-square me-2"></i>Kesimpulan Penelitian</h5>
-                    <div class="mt-4 p-3 bg-light rounded">
-                        <p class="mb-0">
-                            <strong>Penelitian ini berhasil mengembangkan sistem prediksi harga bahan pangan dengan tingkat akurasi yang sangat tinggi</strong> (MAPE {{ "%.2f"|format(avg_mape) }}%) menggunakan algoritma Support Vector Regression dengan kernel RBF. 
-                            Sistem dapat memprediksi harga <strong>{{ categories_count }} kategori beras</strong> berdasarkan data historis <strong>{{ total_records }} hari</strong> periode {{ data_period }}. 
-                            Model menunjukkan bahwa <strong>{{ best_category_short }}</strong> merupakan kategori dengan prediksi terbaik. 
-                            Implementasi sistem ini dapat membantu <strong>monitoring harga, perencanaan distribusi, dan pengambilan kebijakan</strong> terkait ketahanan pangan di {{ research_location }}.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="page-head">
+    <div>
+        <h1>Tentang Penelitian</h1>
+        <p>{{ research.judul }}</p>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Animation untuk cards
-    const infoCards = document.querySelectorAll('.info-card');
-    infoCards.forEach((card, index) => {
-        setTimeout(() => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(20px)';
-            card.style.transition = 'all 0.5s ease';
-            
-            setTimeout(() => {
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-            }, 100);
-        }, index * 100);
-    });
+<div class="row g-3">
+    <div class="col-12">
+        <section class="card">
+            <div class="card-body p-4">
+                <span class="chapter-mark">Bab 1</span>
+                <h2 class="h4 mb-3">Latar belakang</h2>
+                <p>Padi merupakan komoditas pangan strategis, sehingga perkiraan jumlah produksi di masa mendatang
+                    penting bagi pabrik penggilingan untuk merencanakan kapasitas operasional, pengadaan gabah,
+                    penyimpanan, dan distribusi. Data produksi padi berbentuk deret waktu yang mengandung tren, pola
+                    musiman akibat siklus tanam dan panen, serta fluktuasi acak.</p>
+                <p class="mb-4">Singular Spectrum Analysis (SSA) dipilih karena merupakan metode nonparametrik yang
+                    mampu memisahkan deret waktu menjadi komponen tren, musiman, dan noise tanpa uji asumsi seperti
+                    stasioneritas, independensi, maupun normalitas residual.</p>
+                {% include 'partials/rumusan_tujuan.html' %}
+            </div>
+        </section>
+    </div>
 
-    console.log('📋 Halaman Tentang Penelitian loaded');
-    console.log('🌾 Fokus: Prediksi Harga Bahan Pangan - {{ research_location }}');
-    console.log('🎯 MAPE: {{ "%.2f"|format(avg_mape) }}%');
-});
-</script>
+    <div class="col-lg-7">
+        <section class="card h-100">
+            <div class="card-body p-4">
+                <span class="chapter-mark">Bab 2 dan 3</span>
+                <h2 class="h4 mb-3">Tahapan Singular Spectrum Analysis</h2>
+                <ol class="steps">
+                    <li><strong>Embedding:</strong> deret X = (x<sub>1</sub>, …, x<sub>N</sub>) diubah menjadi matriks
+                        lintasan (Hankel) berukuran L × K dengan K = N − L + 1 dan 2 &lt; L &lt; N/2. Nilai L
+                        ditentukan dengan coba-coba.</li>
+                    <li><strong>Singular Value Decomposition (SVD):</strong> matriks lintasan dipecah menjadi nilai
+                        singular dan vektor singular yang membentuk komponen-komponen penyusun data.</li>
+                    <li><strong>Grouping:</strong> komponen dikelompokkan dengan parameter r menjadi tren, musiman, dan
+                        noise. Komponen noise dibuang.</li>
+                    <li><strong>Diagonal averaging:</strong> matriks hasil grouping diubah kembali menjadi deret waktu
+                        sepanjang N yang telah bersih dari noise.</li>
+                    <li class="pb-0"><strong>Peramalan:</strong> hasil rekonstruksi diproyeksikan ke periode mendatang
+                        dengan Recurrent SSA (R-SSA).</li>
+                </ol>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-lg-5">
+        <section class="card h-100">
+            <div class="card-body p-4">
+                <span class="chapter-mark">Bab 2</span>
+                <h2 class="h4 mb-3">Ukuran akurasi</h2>
+                <dl class="facts mb-2">
+                    <dt>MAE</dt>
+                    <dd>(1/n) Σ |X<sub>t</sub> − Y<sub>t</sub>|</dd>
+                    <dt>MSE</dt>
+                    <dd>(1/n) Σ (X<sub>t</sub> − Y<sub>t</sub>)²</dd>
+                    <dt>RMSE</dt>
+                    <dd>√MSE</dd>
+                    <dt>MAPE</dt>
+                    <dd>(100%/n) Σ |X<sub>t</sub> − Y<sub>t</sub>| / X<sub>t</sub></dd>
+                </dl>
+                <p class="small text-muted-ink">X<sub>t</sub> = data aktual, Y<sub>t</sub> = hasil ramalan, n = jumlah
+                    periode.</p>
+                {% include 'partials/kriteria_mape.html' %}
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12">
+        <section class="card">
+            <div class="card-body p-4">
+                <span class="chapter-mark">Bab 1</span>
+                <h2 class="h4 mb-3">Batasan masalah</h2>
+                {% include 'partials/batasan.html' %}
+            </div>
+        </section>
+    </div>
+</div>
 {% endblock %}

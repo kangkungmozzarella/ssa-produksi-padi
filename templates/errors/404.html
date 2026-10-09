@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halaman Tidak Ditemukan · Peramalan Produksi Padi SSA</title>
+    {% include 'partials/head_assets.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/public.css') }}">
+</head>
+
+<body>
+    <main class="notfound">
+        <div>
+            <p class="code mb-2">404</p>
+            <h1 class="h3 mb-2">Halaman tidak ditemukan</h1>
+            <p class="text-muted-ink mb-4">Alamat yang dibuka tidak ada di sistem ini.</p>
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Kembali ke beranda</a>
+        </div>
+    </main>
+</body>
+
+</html>

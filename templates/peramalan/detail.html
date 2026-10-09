@@ -1,0 +1,393 @@
+{% extends 'layouts/main_layout.html' %}
+{% block title %}Detail Peramalan #{{ run.id }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Hasil Peramalan #{{ run.id }}</h1>
+        <p>Diproses {{ run.dibuat_pada }}{% if run.dijalankan_oleh %} oleh {{ run.dijalankan_oleh }}{% endif %} dari data {{ run.tanggal_awal|tgl }} sampai {{ run.tanggal_akhir|tgl }}
+            ({{ run.n_data }} hari).</p>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('peramalan_riwayat') }}" class="btn btn-light"><i class="ph ph-arrow-left"
+                aria-hidden="true"></i>Kembali ke riwayat</a>
+    </div>
+</div>
+
+<!-- Ringkasan: akurasi menjadi titik fokus, parameter dan total ramalan sebagai pendukung -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-5">
+        <section class="card focus-panel h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div class="figure-label">Akurasi pada data uji (MAPE)</div>
+                    <span class="badge-kriteria {{ run.kriteria|lower|replace(' ', '-') }}">{{ run.kriteria }}</span>
+                </div>
+                <div class="figure figure-xl">{{ run.mape|angka }}<small>%</small></div>
+                <p class="text-muted-ink mb-0 mt-2">MAE {{ run.mae|angka }} ton · MSE {{ run.mse|angka }} · RMSE
+                    {{ run.rmse|angka }} ton</p>
+            </div>
+        </section>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <section class="card h-100">
+            <div class="card-body p-4">
+                <div class="figure-label">Parameter SSA ({{ run.mode_parameter }})</div>
+                <div class="figure">L = {{ run.window_length }}, r = {{ run.grup_r }}</div>
+                <p class="text-muted-ink small mb-0 mt-2">K = {{ detail.K }} · latih {{ (run.rasio_latih * 100)|round|int
+                    }}% ({{ run.n_latih }} hari), uji {{ run.n_uji }} hari</p>
+            </div>
+        </section>
+    </div>
+    <div class="col-sm-6 col-lg-4">
+        <section class="card h-100">
+            <div class="card-body p-4">
+                <div class="figure-label">Ramalan {{ run.horizon }} hari ke depan</div>
+                <div class="figure">{{ run.total_ramalan|angka(0) }} <small>ton</small></div>
+                <p class="text-muted-ink small mb-0 mt-2">{{ ramalan[0].tanggal|tgl }} sampai {{ ramalan[-1].tanggal|tgl
+                    }}</p>
+            </div>
+        </section>
+    </div>
+</div>
+
+<ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabRamalan" type="button" role="tab"
+            data-chart="ramalan">Hasil Ramalan</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabUji" type="button" role="tab"
+            data-chart="uji">Evaluasi Data Uji</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabDekomposisi" type="button" role="tab"
+            data-chart="dekomposisi">Dekomposisi & Rekonstruksi</button>
+    </li>
+    {% if detail.pencarian %}
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabPencarian" type="button" role="tab"
+            data-chart="pencarian">Pemilihan L</button>
+    </li>
+    {% endif %}
+</ul>
+
+<div class="tab-content">
+    <!-- Ramalan -->
+    <div class="tab-pane fade show active" id="tabRamalan" role="tabpanel">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h3 class="card-title mb-3">Data aktual dan ramalan produksi (ton/hari)</h3>
+                <div id="chartRamalan"></div>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-lg-7">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title mb-3">Rekap ramalan per bulan</h3>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Bulan</th>
+                                        <th class="num">Hari</th>
+                                        <th class="num">Total (ton)</th>
+                                        <th class="num">Rata-rata/hari</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for b in rekap_bulan %}
+                                    <tr>
+                                        <td>{{ b.periode }}{% if not b.penuh %} <small
+                                                class="text-warning-emphasis">(sebagian)</small>{% endif %}</td>
+                                        <td class="num">{{ b.hari }}</td>
+                                        <td class="num">{{ b.total|angka }}</td>
+                                        <td class="num">{{ b.rata|angka }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title mb-3">Rekap ramalan per kuartal</h3>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Kuartal</th>
+                                    <th class="num">Hari</th>
+                                    <th class="num">Total (ton)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for q in rekap_kuartal %}
+                                <tr>
+                                    <td>{{ q.periode }}{% if not q.penuh %} <small
+                                            class="text-warning-emphasis">(sebagian)</small>{% endif %}</td>
+                                    <td class="num">{{ q.hari }}</td>
+                                    <td class="num">{{ q.total|angka }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <details class="mt-3">
+                            <summary class="fw-semibold">Ramalan harian ({{ ramalan|length }} hari)</summary>
+                            <div class="table-scroll mt-2" style="max-height: 360px;">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal</th>
+                                            <th class="num">Ramalan (ton)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for h in ramalan %}
+                                        <tr>
+                                            <td>{{ h.tanggal|tgl }}</td>
+                                            <td class="num">{{ h.nilai|angka }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Evaluasi -->
+    <div class="tab-pane fade" id="tabUji" role="tabpanel">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h3 class="card-title">Aktual vs hasil ramalan pada data uji</h3>
+                <p class="card-sub">Model dilatih pada {{ run.n_latih }} hari pertama, lalu meramal
+                    {{ run.n_uji }} hari berikutnya tanpa melihat data aktualnya. Pada data latih, rekonstruksi
+                    menghasilkan MAPE {{ detail.fit_metrics.mape|angka }}%.</p>
+                <div id="chartUji"></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="table-scroll">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th class="num">Aktual (ton)</th>
+                                <th class="num">Ramalan (ton)</th>
+                                <th class="num">|Aktual − Ramalan|</th>
+                                <th class="num">APE (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for h in uji %}
+                            <tr>
+                                <td>{{ h.tanggal|tgl }}</td>
+                                <td class="num">{{ h.aktual|angka }}</td>
+                                <td class="num">{{ h.nilai|angka }}</td>
+                                <td class="num">{{ (h.aktual - h.nilai)|abs|angka }}</td>
+                                <td class="num">{{ h.ape|angka }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="fw-semibold">
+                            <tr>
+                                <td colspan="3">Rata-rata</td>
+                                <td class="num">MAE {{ run.mae|angka }}</td>
+                                <td class="num">MAPE {{ run.mape|angka }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dekomposisi -->
+    <div class="tab-pane fade" id="tabDekomposisi" role="tabpanel">
+        <p class="card-sub">Dekomposisi berikut dihitung dari seluruh {{ run.n_data }} hari data dengan
+            L = {{ run.window_length }} (matriks lintasan {{ run.window_length }} × {{ detail.K }}). Hasil inilah yang
+            dipakai untuk meramal periode mendatang.</p>
+        <div class="row g-3 mb-3">
+            <div class="col-lg-5">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title mb-3">Nilai singular hasil SVD</h3>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Komponen</th>
+                                    <th class="num">Nilai singular</th>
+                                    <th class="num">Kontribusi (%)</th>
+                                    <th>Grup</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in detail.nilai_singular %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td class="num">{{ s|angka(4) }}</td>
+                                    <td class="num">{{ detail.kontribusi[loop.index0]|angka(4) }}</td>
+                                    <td>{% if loop.index == 1 %}Tren{% elif loop.index <= run.grup_r %}Musiman{%
+                                            else %}<span class="text-muted-ink">Noise</span>{% endif %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title mb-3">Komponen elementer (hasil diagonal averaging tiap eigentriple)</h3>
+                        <div id="chartKomponen"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-body">
+                <h3 class="card-title mb-3">Data aktual vs rekonstruksi (tren + musiman)</h3>
+                <div id="chartRekonstruksi"></div>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title mb-3">Komponen tren</h3>
+                        <div id="chartTren"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title mb-3">Komponen musiman</h3>
+                        <div id="chartMusiman"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title mb-3">Komponen noise (dibuang)</h3>
+                        <div id="chartNoise"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if detail.pencarian %}
+    <!-- Pencarian L -->
+    <div class="tab-pane fade" id="tabPencarian" role="tabpanel">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h3 class="card-title">MAPE data uji untuk setiap window length</h3>
+                <p class="card-sub">Untuk setiap L dicoba r = 1 sampai min(L − 1, 10); yang ditampilkan
+                    adalah r dengan MAPE terkecil. Terpilih L = {{ run.window_length }}, r = {{ run.grup_r }}.</p>
+                <div id="chartPencarian"></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="table-scroll">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th class="num">L</th>
+                                <th class="num">r terbaik</th>
+                                <th class="num">MAE</th>
+                                <th class="num">MAPE (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in detail.pencarian %}
+                            <tr {% if row.L == run.window_length %}class="table-success fw-semibold"{% endif %}>
+                                <td class="num">{{ row.L }}</td>
+                                <td class="num">{{ row.r }}</td>
+                                <td class="num">{{ row.mae|angka(4) }}</td>
+                                <td class="num">{{ row.mape|angka(4) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const d = {{ detail | tojson }};
+    const c = {{ chart | tojson }};
+    const pairs = (xs, ys) => xs.map((x, i) => [x, ys[i]]);
+    const lineChart = (selector, series, colors, extra = {}) => new ApexCharts(document.querySelector(selector), {
+        ...chartBase,
+        chart: { ...chartBase.chart, type: 'line', height: extra.height || 340 },
+        series, colors,
+        stroke: { width: extra.width || series.map(() => 1.5), dashArray: extra.dash || 0 },
+        xaxis: { type: 'datetime' },
+        ...(extra.options || {}),
+    }).render();
+
+    const renderers = {
+        ramalan() {
+            lineChart('#chartRamalan', [
+                { name: 'Aktual', data: pairs(d.tanggal, d.aktual) },
+                { name: 'Ramalan', data: pairs(c.ramalan_tanggal, c.ramalan_nilai) },
+            ], [WARNA.aktual, WARNA.ramalan], { height: 380, width: [1.5, 2.5] });
+        },
+        uji() {
+            lineChart('#chartUji', [
+                { name: 'Aktual', data: pairs(c.uji_tanggal, c.uji_aktual) },
+                { name: 'Ramalan', data: pairs(c.uji_tanggal, c.uji_prediksi) },
+            ], [WARNA.aktual, WARNA.ramalan], { width: [1.5, 2.5] });
+        },
+        dekomposisi() {
+            // Komponen elementer perlu dibedakan satu sama lain, jadi di sini saja dipakai lebih dari dua warna
+            lineChart('#chartKomponen', d.komponen.map((k, i) => ({ name: `F${i + 1}`, data: pairs(d.tanggal, k) })),
+                [WARNA.aktual, WARNA.ramalan, '#3F7A8C', '#8C5A7A', '#7A6A4F', '#5E8C61'],
+                { height: 300, options: { tooltip: { y: { formatter: v => formatTon(v, 4) } } } });
+            lineChart('#chartRekonstruksi', [
+                { name: 'Aktual', data: pairs(d.tanggal, d.aktual) },
+                { name: 'Rekonstruksi', data: pairs(d.tanggal, d.rekonstruksi) },
+            ], [WARNA.pudar, WARNA.aktual], { width: [1, 2.5] });
+            lineChart('#chartTren', [{ name: 'Tren', data: pairs(d.tanggal, d.tren) }], [WARNA.aktual], { height: 240 });
+            lineChart('#chartMusiman', [{ name: 'Musiman', data: pairs(d.tanggal, d.musiman) }], [WARNA.ramalan], { height: 240 });
+            lineChart('#chartNoise', [{ name: 'Noise', data: pairs(d.tanggal, d.noise) }], [WARNA.noise], { height: 240 });
+        },
+        pencarian() {
+            new ApexCharts(document.querySelector('#chartPencarian'), {
+                ...chartBase,
+                chart: { ...chartBase.chart, type: 'line', height: 320 },
+                series: [{ name: 'MAPE (%)', data: d.pencarian.map(row => [row.L, row.mape]) }],
+                colors: [WARNA.aktual],
+                stroke: { width: 2 },
+                xaxis: { type: 'numeric', title: { text: 'Window length (L)' }, tickAmount: 12 },
+                yaxis: { labels: { formatter: v => formatTon(v, 2) + '%' } },
+                tooltip: { x: { formatter: v => 'L = ' + v }, y: { formatter: v => formatTon(v, 4) + '%' } },
+            }).render();
+        },
+    };
+
+    // Grafik di tab tersembunyi baru dirender saat tab dibuka agar ukurannya benar
+    const rendered = new Set();
+    const renderTab = name => { if (!rendered.has(name)) { rendered.add(name); renderers[name](); } };
+    renderTab('ramalan');
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(btn =>
+        btn.addEventListener('shown.bs.tab', () => renderTab(btn.dataset.chart)));
+</script>
+{% endblock %}

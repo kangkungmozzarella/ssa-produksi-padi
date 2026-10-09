@@ -1,0 +1,149 @@
+{% extends 'layouts/main_layout.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Selamat datang, {{ current_user.nama }}</h1>
+        <p>Ringkasan data produksi padi dan hasil peramalan terakhir.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('data_produksi') }}" class="btn btn-light"><i class="ph ph-table" aria-hidden="true"></i>{{
+            'Kelola data' if is_admin else 'Lihat data' }}</a>
+        {% if stats and not problem %}
+        <a href="{{ url_for('peramalan') }}" class="btn btn-primary"><i class="ph ph-chart-line-up" aria-hidden="true"></i>Jalankan peramalan</a>
+        {% endif %}
+    </div>
+</div>
+
+{% if problem %}
+<div class="alert alert-warning">{{ problem }} <a href="{{ url_for('data_produksi') }}">Buka Data Produksi</a></div>
+{% endif %}
+
+{% if not stats %}
+<div class="card">
+    <div class="empty-state">
+        <i class="ph ph-database" aria-hidden="true"></i>
+        <h2>Belum ada data produksi</h2>
+        {% if is_admin %}
+        <p>Peramalan membutuhkan data produksi harian. Tambahkan data satu per satu atau import file Excel dari pabrik.</p>
+        <a href="{{ url_for('data_produksi') }}" class="btn btn-primary">Tambah atau import data</a>
+        {% else %}
+        <p>Peramalan membutuhkan data produksi harian. Hubungi admin untuk memasukkan data dari pabrik.</p>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="row g-3 mb-3">
+    <div class="col-xl-7">
+        {% if latest %}
+        <section class="card focus-panel h-100" aria-labelledby="judulTerakhir">
+            <div class="card-body p-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+                    <div>
+                        <h2 id="judulTerakhir" class="h5 mb-1">Peramalan terakhir</h2>
+                        <p class="text-muted-ink mb-0 small">Diproses {{ latest.dibuat_pada }} · mode {{ latest.mode_parameter }}</p>
+                    </div>
+                    <span class="badge-kriteria {{ latest.kriteria|lower|replace(' ', '-') }}">{{ latest.kriteria }}</span>
+                </div>
+                <div class="row g-4 align-items-end">
+                    <div class="col-sm-6">
+                        <div class="figure-label">MAPE pada data uji</div>
+                        <div class="figure figure-xl">{{ latest.mape|angka }}<small>%</small></div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="figure-label">Total ramalan {{ latest.horizon }} hari ke depan</div>
+                        <div class="figure">{{ latest.total_ramalan|angka(0) }} <small>ton</small></div>
+                    </div>
+                </div>
+                <hr class="divider my-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <span class="text-muted-ink">Parameter L = {{ latest.window_length }}, r = {{ latest.grup_r }} ·
+                        MAE {{ latest.mae|angka }} ton</span>
+                    <a href="{{ url_for('peramalan_detail', run_id=latest.id) }}" class="fw-semibold">Buka hasil lengkap</a>
+                </div>
+            </div>
+        </section>
+        {% else %}
+        <section class="card h-100">
+            <div class="empty-state">
+                <i class="ph ph-chart-line-up" aria-hidden="true"></i>
+                <h2>Belum ada hasil peramalan</h2>
+                <p>Data sudah tersedia. Jalankan peramalan untuk mendapatkan nilai L, r, akurasi MAPE, dan ramalan
+                    periode mendatang.</p>
+                {% if not problem %}<a href="{{ url_for('peramalan') }}" class="btn btn-primary">Jalankan peramalan</a>{% endif %}
+            </div>
+        </section>
+        {% endif %}
+    </div>
+
+    <div class="col-xl-5">
+        <section class="card h-100" aria-labelledby="judulData">
+            <div class="card-body">
+                <h2 id="judulData" class="card-title">Data produksi</h2>
+                <p class="card-sub">{{ stats.awal|tgl }} sampai {{ stats.akhir|tgl }}</p>
+                <dl class="facts">
+                    <dt>Jumlah data</dt>
+                    <dd>{{ stats.n }} hari</dd>
+                    <dt>Total produksi</dt>
+                    <dd>{{ stats.total|angka(0) }} ton</dd>
+                    <dt>Rata-rata harian</dt>
+                    <dd>{{ stats.rata|angka }} ton</dd>
+                    <dt>Terendah</dt>
+                    <dd>{{ stats.min|angka(0) }} ton</dd>
+                    <dt>Tertinggi</dt>
+                    <dd>{{ stats.max|angka(0) }} ton</dd>
+                </dl>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-xl-8">
+        <section class="card h-100">
+            <div class="card-body">
+                <h2 class="card-title">Produksi harian</h2>
+                <p class="card-sub">Ton per hari. Seret pada grafik untuk memperbesar periode tertentu.</p>
+                <div id="chartHarian"></div>
+            </div>
+        </section>
+    </div>
+    <div class="col-xl-4">
+        <section class="card h-100">
+            <div class="card-body">
+                <h2 class="card-title">Total per bulan</h2>
+                <p class="card-sub">Jumlah produksi setiap bulan (ton).</p>
+                <div id="chartBulanan"></div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if chart %}
+<script>
+    const dataChart = {{ chart | tojson }};
+    new ApexCharts(document.querySelector('#chartHarian'), {
+        ...chartBase,
+        chart: { ...chartBase.chart, type: 'line', height: 340 },
+        series: [{ name: 'Produksi', data: dataChart.tanggal.map((t, i) => [t, dataChart.ton[i]]) }],
+        colors: [WARNA.aktual],
+        stroke: { width: 1.5 },
+        xaxis: { type: 'datetime' },
+    }).render();
+
+    new ApexCharts(document.querySelector('#chartBulanan'), {
+        ...chartBase,
+        chart: { ...chartBase.chart, type: 'bar', height: 340, toolbar: { show: false } },
+        series: [{ name: 'Total', data: dataChart.bulan_total }],
+        colors: [WARNA.aktual],
+        plotOptions: { bar: { horizontal: true, borderRadius: 2, barHeight: '70%' } },
+        xaxis: { categories: dataChart.bulan_label, labels: { formatter: v => formatTon(v, 0) } },
+        yaxis: { labels: { formatter: v => String(v).split(' ')[0] } },
+    }).render();
+</script>
+{% endif %}
+{% endblock %}

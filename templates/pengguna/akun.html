@@ -1,0 +1,58 @@
+{% extends 'layouts/main_layout.html' %}
+{% block title %}Akun Saya{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Akun Saya</h1>
+        <p>Informasi akun dan penggantian password.</p>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <section class="card h-100">
+            <div class="card-body p-4">
+                <h2 class="card-title mb-3">Informasi akun</h2>
+                <dl class="facts">
+                    <dt>Nama</dt>
+                    <dd>{{ current_user.nama }}</dd>
+                    <dt>Username</dt>
+                    <dd>{{ current_user.username }}</dd>
+                    <dt>Peran</dt>
+                    <dd><span class="role-tag">{{ current_user.peran|capitalize }}</span></dd>
+                </dl>
+                {% if not is_admin %}
+                <p class="text-muted-ink small mt-3 mb-0">Untuk mengubah nama atau peran, hubungi admin.</p>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+    <div class="col-lg-7">
+        <form class="card h-100" method="POST">
+            <div class="card-body p-4">
+                <h2 class="card-title">Ganti password</h2>
+                <p class="card-sub">Minimal {{ min_password }} karakter.</p>
+                <div class="mb-3">
+                    <label class="form-label" for="passwordLama">Password saat ini</label>
+                    <input type="password" class="form-control" id="passwordLama" name="password_lama" required
+                        autocomplete="current-password">
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6">
+                        <label class="form-label" for="passwordBaru">Password baru</label>
+                        <input type="password" class="form-control" id="passwordBaru" name="password" required
+                            minlength="{{ min_password }}" autocomplete="new-password">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label" for="konfirmasi">Ulangi password baru</label>
+                        <input type="password" class="form-control" id="konfirmasi" name="konfirmasi" required
+                            minlength="{{ min_password }}" autocomplete="new-password">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Simpan password</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

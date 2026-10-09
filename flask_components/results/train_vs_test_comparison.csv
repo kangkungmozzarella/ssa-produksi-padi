@@ -1,7 +1,0 @@
-Kategori,Train MAE,Test MAE,Train RMSE,Test RMSE,Train MAPE,Test MAPE
-Bawah I,40,867,47,909,0.40%,7.01%
-Bawah II,48,691,56,752,0.45%,5.36%
-Medium I,50,726,57,787,0.43%,5.19%
-Medium II,46,716,55,763,0.39%,5.07%
-Super I,40,861,47,925,0.32%,5.89%
-Super II,47,815,55,867,0.37%,5.45%

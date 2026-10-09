@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masuk · Peramalan Produksi Padi SSA</title>
+    {% include 'partials/head_assets.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/public.css') }}">
+</head>
+
+<body>
+    <div class="auth">
+        <aside class="auth-side">
+            <a href="{{ url_for('index') }}" class="d-inline-flex align-items-center gap-2 fw-semibold">
+                <i class="ph ph-arrow-left" aria-hidden="true"></i><span>Kembali ke beranda</span></a>
+            <div>
+                <span class="chapter-mark">Sistem peramalan</span>
+                <h1>Peramalan produksi padi Pabrik KP. Putra Yusima</h1>
+                <p class="mb-0">Desa Masjid, Kecamatan Meurah Mulia, Kabupaten Aceh Utara. Metode Singular Spectrum
+                    Analysis (SSA).</p>
+            </div>
+            <p class="auth-extra small mb-0">Setelah masuk, admin dapat mengelola data produksi harian, menjalankan
+                peramalan, dan membuka kembali setiap hasil yang tersimpan.</p>
+        </aside>
+
+        <main class="auth-main">
+            <div class="auth-card">
+                <h2>Masuk sebagai admin</h2>
+                <p class="text-muted-ink mb-4">Gunakan akun yang terdaftar di sistem.</p>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} py-2" role="alert">{{ message }}</div>
+                {% endfor %}
+                {% endwith %}
+
+                <form action="{{ url_for('login') }}" method="POST" id="formLogin">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" id="username" name="username" class="form-control" autocomplete="username"
+                            value="{{ request.form.get('username', '') }}" required autofocus>
+                    </div>
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="password-field">
+                            <input type="password" id="password" name="password" class="form-control"
+                                autocomplete="current-password" required>
+                            <button type="button" class="password-toggle" id="togglePassword"
+                                aria-label="Tampilkan password" aria-pressed="false">
+                                <i class="ph ph-eye" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100" id="btnMasuk">Masuk</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const pw = document.getElementById('password');
+        const toggle = document.getElementById('togglePassword');
+        toggle.addEventListener('click', () => {
+            const tampil = pw.type === 'password';
+            pw.type = tampil ? 'text' : 'password';
+            toggle.setAttribute('aria-pressed', String(tampil));
+            toggle.setAttribute('aria-label', tampil ? 'Sembunyikan password' : 'Tampilkan password');
+            toggle.querySelector('i').className = tampil ? 'ph ph-eye-slash' : 'ph ph-eye';
+        });
+        document.getElementById('formLogin').addEventListener('submit', () => {
+            const btn = document.getElementById('btnMasuk');
+            btn.disabled = true;
+            btn.textContent = 'Memeriksa…';
+        });
+    </script>
+</body>
+
+</html>
