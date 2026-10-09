@@ -9,7 +9,7 @@
     position: sticky;
     top: 0;
     z-index: 30;
-    background: rgba(245, 240, 227, .95);
+    background: var(--cream);
     border-bottom: 1px solid var(--line);
 }
 
@@ -42,6 +42,10 @@
 .site-nav a:not(.btn):hover { background: var(--cream-300); }
 .site-nav { margin-left: auto; }
 .site-cta { flex-shrink: 0; }
+
+/* Tombol masuk di beranda berubah (morph) menjadi kartu login, dan sebaliknya */
+.site-cta,
+.auth-card { view-transition-name: pintu-masuk; }
 
 @media (max-width: 860px) {
     .site-head .wrap { flex-wrap: wrap; padding-block: 8px; gap: 4px 12px; }
@@ -120,6 +124,28 @@
 .series-cell.is-diag small { color: #FFF3D6; }
 
 .matrix-caption { margin: 12px 0 0; font-size: .9rem; color: var(--muted); }
+
+/* Peragaan embedding: nilai x ke-k menyala, lalu semua sel di anti-diagonal ke-k muncul */
+/* fill-mode backwards: tidak menahan warna akhir, jadi sorotan saat hover tetap berlaku */
+.matrix-card.play .series-cell { animation: x-menyala .7s ease backwards; animation-delay: calc(var(--k) * 110ms); }
+.matrix-card.play .hankel td { animation: sel-masuk .45s cubic-bezier(.2, .8, .2, 1) backwards; animation-delay: calc(var(--k) * 110ms + 120ms); }
+
+@keyframes x-menyala {
+    0%, 100% { background: var(--cream); color: var(--ink); }
+    35% { background: var(--gold-ink); color: #fff; }
+}
+
+@keyframes sel-masuk {
+    from { opacity: 0; transform: translateY(-8px) scale(.85); }
+}
+
+.matrix-card .replay { flex-shrink: 0; margin-top: -4px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .matrix-card.play .series-cell,
+    .matrix-card.play .hankel td { animation: none; }
+    .matrix-card .replay { display: none; }
+}
 
 /* ------------------------------------------------------------------ section */
 .section { padding: 64px 0; }

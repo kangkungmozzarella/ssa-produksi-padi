@@ -58,12 +58,17 @@
                     <div class="col-lg-5">
                         {% if matriks %}
                         <figure class="matrix-card mb-0" id="matriks">
-                            <h2>Tahap embedding pada data asli</h2>
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <h2>Tahap embedding pada data asli</h2>
+                                <button type="button" class="btn btn-sm btn-light replay" id="putarUlang"
+                                    aria-label="Putar ulang animasi embedding">
+                                    <i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i>Ulangi</button>
+                            </div>
                             <p class="note">Delapan hari pertama produksi (ton) disusun menjadi matriks lintasan
                                 L × K dengan L = {{ matriks.L }}.</p>
                             <div class="series-row" aria-hidden="true">
                                 {% for v in matriks.deret %}
-                                <div class="series-cell" data-k="{{ loop.index0 }}"><small>x{{ loop.index }}</small><b>{{
+                                <div class="series-cell" data-k="{{ loop.index0 }}" style="--k: {{ loop.index0 }}"><small>x{{ loop.index }}</small><b>{{
                                         v|angka(0) }}</b></div>
                                 {% endfor %}
                             </div>
@@ -82,7 +87,7 @@
                                     <tr>
                                         <th scope="row">baris {{ i + 1 }}</th>
                                         {% for v in baris %}
-                                        <td tabindex="0" data-k="{{ i + loop.index0 }}"
+                                        <td tabindex="0" data-k="{{ i + loop.index0 }}" style="--k: {{ i + loop.index0 }}"
                                             aria-label="baris {{ i + 1 }}, kolom {{ loop.index }}: x{{ i + loop.index }} = {{ v|angka(0) }} ton, tanggal {{ matriks.tanggal[i + loop.index0] }}">
                                             {{ v|angka(0) }}</td>
                                         {% endfor %}
@@ -297,6 +302,18 @@
         (() => {
             const kartu = document.getElementById('matriks');
             if (!kartu) return;
+            // Peragaan embedding: matriks tersusun per anti-diagonal, seiring nilai x yang mengisinya
+            const putar = () => {
+                kartu.classList.remove('play');
+                void kartu.offsetWidth;  // reset animasi CSS agar bisa diputar ulang
+                kartu.classList.add('play');
+            };
+            document.getElementById('putarUlang').addEventListener('click', putar);
+            if (!KURANGI_GERAK) {
+                new IntersectionObserver((entri, obs) => {
+                    if (entri[0].isIntersecting) { putar(); obs.disconnect(); }
+                }, { threshold: .5 }).observe(kartu);
+            }
             const sorot = k => kartu.querySelectorAll('[data-k]').forEach(el =>
                 el.classList.toggle('is-diag', k !== null && el.dataset.k === k));
             kartu.querySelectorAll('td[data-k]').forEach(td => {

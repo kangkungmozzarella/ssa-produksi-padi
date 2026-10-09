@@ -44,7 +44,7 @@
                         <td>{{ run.grup_r }}</td>
                         <td class="text-nowrap">{{ run.n_latih }} / {{ run.n_uji }}</td>
                         <td>{{ run.mae|angka }}</td>
-                        <td>{{ run.mape|angka }}%</td>
+                        <td style="view-transition-name: hasil-{{ run.id }}">{{ run.mape|angka }}%</td>
                         <td><span class="badge-kriteria {{ run.kriteria|lower|replace(' ', '-') }}">{{ run.kriteria
                                 }}</span></td>
                         <td class="text-nowrap">{{ run.total_ramalan|angka(0) }} ton<br><small

@@ -5,13 +5,19 @@ const formatTon = (v, d = 2) =>
 // Warna grafik: hijau = data aktual/model, emas = ramalan (satu-satunya aksen), abu = pembanding
 const WARNA = { aktual: '#2E5E3E', ramalan: '#B7861F', pudar: '#A9B7A2', noise: '#7C8577' };
 
+const KURANGI_GERAK = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 const chartBase = {
     chart: {
         fontFamily: "'Source Sans 3', 'Segoe UI', system-ui, sans-serif",
         foreColor: '#535C4E',
         toolbar: { show: true, tools: { download: false } },
         zoom: { enabled: true },
-        animations: { enabled: false },
+        // Garis digambar sekali saat grafik muncul; zoom & pembaruan tetap instan
+        animations: {
+            enabled: !KURANGI_GERAK, easing: 'easeout', speed: 550,
+            animateGradually: { enabled: false }, dynamicAnimation: { enabled: false },
+        },
     },
     dataLabels: { enabled: false },
     grid: { borderColor: '#E3DBC6', strokeDashArray: 3 },
@@ -35,6 +41,25 @@ if (window.DataTable) {
         },
     });
 }
+
+// Garis penanda tab bergeser ke tab yang dipilih (Bootstrap tab)
+document.querySelectorAll('.nav-tabs').forEach(nav => {
+    const ink = document.createElement('li');
+    ink.className = 'tab-ink';
+    ink.setAttribute('aria-hidden', 'true');
+    nav.appendChild(ink);
+    nav.classList.add('has-ink');
+    const geser = () => {
+        const aktif = nav.querySelector('.nav-link.active');
+        if (!aktif) return;
+        ink.style.width = `${aktif.offsetWidth}px`;
+        ink.style.transform = `translateX(${aktif.offsetLeft}px)`;
+    };
+    nav.addEventListener('shown.bs.tab', geser);
+    window.addEventListener('resize', geser);
+    geser();
+    document.fonts?.ready.then(geser);  // lebar tab berubah setelah font web selesai dimuat
+});
 
 // Sidebar di layar kecil: buka dengan tombol menu, tutup dengan overlay atau Escape
 (() => {

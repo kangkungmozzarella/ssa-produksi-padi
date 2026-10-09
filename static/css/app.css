@@ -472,7 +472,7 @@ div.dt-container .dt-paging .dt-paging-button.disabled:hover {
     gap: 12px;
     min-height: 64px;
     padding: 10px 32px;
-    background: rgba(245, 240, 227, .94);
+    background: var(--cream);  /* solid: konten yang di-scroll tidak boleh terlihat di belakang judul */
     border-bottom: 1px solid var(--line);
 }
 
@@ -624,6 +624,62 @@ div.dt-container .dt-paging .dt-paging-button.disabled:hover {
     color: var(--green-900);
     background: var(--green-100);
     border-radius: 50%;
+}
+
+/* ================================================================== GERAK (MOTION)
+ * Tujuan: menjaga orientasi saat berpindah halaman, bukan dekorasi.
+ *   - Halaman berganti dengan cross-document View Transitions: elemen yang sama di kedua halaman
+ *     (menu aktif, judul, ringkasan MAPE satu hasil, tombol masuk/kartu login) "morph" ke posisi barunya.
+ *   - Browser tanpa dukungan tetap berpindah halaman seperti biasa.
+ *   - Semua gerak dimatikan bila pengguna memilih "kurangi gerakan".
+ */
+@view-transition { navigation: auto; }
+
+.sidebar { view-transition-name: sidebar; }
+.topbar { view-transition-name: topbar; }
+.side-link.active { view-transition-name: nav-active; }
+.page-head h1 { view-transition-name: page-title; }
+
+::view-transition-group(*) {
+    animation-duration: .38s;
+    animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+}
+
+::view-transition-old(root) { animation: vt-keluar .16s ease both; }
+::view-transition-new(root) { animation: vt-masuk .3s cubic-bezier(.2, .8, .2, 1) .05s both; }
+
+/* Teks yang berpindah jangan ikut melar: tahan tinggi, biarkan lebar mengikuti isi */
+::view-transition-old(page-title),
+::view-transition-new(page-title) { height: 100%; width: auto; }
+
+/* Kotak yang berubah ukuran (sel tabel menjadi panel, tombol menjadi kartu): isi dipotong, tidak ditarik */
+::view-transition-old(*),
+::view-transition-new(*) { object-fit: cover; }
+
+@keyframes vt-keluar { to { opacity: 0; } }
+@keyframes vt-masuk { from { opacity: 0; transform: translateY(10px); } }
+
+/* Garis penanda tab yang bergeser ke tab aktif */
+.nav-tabs { position: relative; }
+.nav-tabs.has-ink .nav-link.active { border-bottom-color: transparent; }
+
+.tab-ink {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    width: 0;
+    border-radius: 3px 3px 0 0;
+    background: var(--green-700);
+    pointer-events: none;
+    transition: transform .32s cubic-bezier(.2, .8, .2, 1), width .32s cubic-bezier(.2, .8, .2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) { animation: none !important; }
+    .tab-ink { transition: none; }
 }
 
 .empty-state { text-align: center; padding: 40px 16px; }

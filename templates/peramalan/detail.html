@@ -17,7 +17,7 @@
 <!-- Ringkasan: akurasi menjadi titik fokus, parameter dan total ramalan sebagai pendukung -->
 <div class="row g-3 mb-4">
     <div class="col-lg-5">
-        <section class="card focus-panel h-100">
+        <section class="card focus-panel h-100" style="view-transition-name: hasil-{{ run.id }}">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-start gap-2">
                     <div class="figure-label">Akurasi pada data uji (MAPE)</div>
@@ -58,7 +58,7 @@
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabUji" type="button" role="tab"
-            data-chart="uji">Evaluasi Data Uji</button>
+            data-chart="uji">Data Uji vs Prediksi</button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabDekomposisi" type="button" role="tab"
@@ -77,7 +77,11 @@
     <div class="tab-pane fade show active" id="tabRamalan" role="tabpanel">
         <div class="card mb-3">
             <div class="card-body">
-                <h3 class="card-title mb-3">Data aktual dan ramalan produksi (ton/hari)</h3>
+                <h3 class="card-title">Data aktual, prediksi data uji, dan ramalan (ton/hari)</h3>
+                <p class="card-sub">Area berwarna adalah periode data uji ({{ run.n_uji }} hari): garis putus-putus
+                    adalah prediksi model yang hanya dilatih dengan {{ run.n_latih }} hari pertama, sehingga dapat
+                    dibandingkan langsung dengan data aktual. Garis emas penuh adalah ramalan periode mendatang.
+                    Rincian per hari ada di tab <em>Data Uji vs Prediksi</em>.</p>
                 <div id="chartRamalan"></div>
             </div>
         </div>
@@ -347,8 +351,25 @@
         ramalan() {
             lineChart('#chartRamalan', [
                 { name: 'Aktual', data: pairs(d.tanggal, d.aktual) },
+                { name: 'Prediksi data uji', data: pairs(c.uji_tanggal, c.uji_prediksi) },
                 { name: 'Ramalan', data: pairs(c.ramalan_tanggal, c.ramalan_nilai) },
-            ], [WARNA.aktual, WARNA.ramalan], { height: 380, width: [1.5, 2.5] });
+            ], [WARNA.aktual, WARNA.ramalan, WARNA.ramalan], {
+                height: 400, width: [1.5, 2.5, 2.5], dash: [0, 5, 0],
+                options: {
+                    annotations: {
+                        xaxis: [{
+                            x: new Date(c.uji_tanggal[0]).getTime(),
+                            x2: new Date(c.uji_tanggal[c.uji_tanggal.length - 1]).getTime(),
+                            fillColor: '#B7861F', opacity: .1, borderColor: 'transparent',
+                            label: {
+                                text: 'Periode uji · MAPE {{ run.mape|angka }}%', orientation: 'horizontal',
+                                borderColor: 'transparent', offsetY: -6,
+                                style: { background: '#FBF3DF', color: '#5E440C', fontSize: '12px', fontWeight: 600 },
+                            },
+                        }],
+                    },
+                },
+            });
         },
         uji() {
             lineChart('#chartUji', [
